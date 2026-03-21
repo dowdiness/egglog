@@ -6,15 +6,15 @@
 /// and `pending` remembers unions that still need to be propagated.
 /// The egglog database: a collection of function tables + union-find.
 pub struct Database {
+  priv rt : @incr.Runtime
   priv uf : UnionFind
   priv tables : Map[String, FunctionTable]
   priv pending : Array[(Id, Id)]
-  priv mut version : Int
 }
 
 ///|
 pub fn Database::new() -> Database {
-  { uf: UnionFind::new(), tables: {}, pending: [], version: 0 }
+  { rt: @incr.Runtime::new(), uf: UnionFind::new(), tables: {}, pending: [] }
 }
 
 ///|
@@ -40,10 +40,7 @@ pub fn Database::register(
   name : String,
   merge? : ((Value, Value) -> Value)? = None,
 ) -> Unit {
-  // TODO(task-3): Database should own a single Runtime; for now each table
-  // gets a throwaway one so that the signature compiles.
-  let rt = @incr.Runtime::new()
-  self.tables[name] = FunctionTable::new(rt, merge)
+  self.tables[name] = FunctionTable::new(self.rt, merge)
 }
 
 ///|
@@ -91,7 +88,6 @@ pub fn Database::call(
     None => {
       let output = IdVal(self.alloc_id())
       let _ = table.insert(canon, output)
-      self.version = self.version + 1
       output
     }
   }
@@ -123,17 +119,13 @@ pub fn Database::set(
         match (canon_old, canon_val) {
           (IdVal(a), IdVal(b)) => {
             self.pending.push((a, b))
-            self.version = self.version + 1
             let (stored, _) = table.insert(canon, canon_val)
             stored
           }
           _ =>
             match table.merge {
               Some(_) => {
-                let (stored, changed) = table.insert(canon, canon_val)
-                if changed {
-                  self.version = self.version + 1
-                }
+                let (stored, _) = table.insert(canon, canon_val)
                 stored
               }
               None =>
@@ -153,7 +145,6 @@ pub fn Database::set(
     }
     None => {
       let _ = table.insert(canon, canon_val)
-      self.version = self.version + 1
       canon_val
     }
   }
@@ -171,7 +162,6 @@ pub fn Database::union(self : Database, a : Id, b : Id) -> Unit {
     return
   }
   self.pending.push((ra, rb))
-  self.version = self.version + 1
 }
 
 ///|
@@ -244,6 +234,16 @@ fn Database::rebuild_table(
       }
     }
   }
+}
+
+///|
+/// Count total materialized rows across all tables.
+///
+/// Used by `Saturate` to detect convergence without a version counter.
+fn Database::count_all_rows(self : Database) -> Int {
+  let mut total = 0
+  self.tables.each(fn(_name, table) { total = total + table.row_count() })
+  total
 }
 
 ///|

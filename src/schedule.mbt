@@ -36,8 +36,8 @@ fn Database::apply_rule(self : Database, rule : Rule) -> Int {
 /// Execute a schedule tree.
 ///
 /// The important mental model is: `Run` performs one wave of rule firing,
-/// `rebuild` makes equalities visible, and `Saturate` watches `version` to see
-/// whether another wave is needed.
+/// `rebuild` makes equalities visible, and `Saturate` watches pending unions
+/// and row counts to see whether another wave is needed.
 pub fn Database::run_schedule(
   self : Database,
   schedule : Schedule,
@@ -56,9 +56,12 @@ pub fn Database::run_schedule(
         self.rebuild()
       }
       for i = 0; i < max_iters; i = i + 1 {
-        let ver = self.version
+        let pending_before = self.pending.length()
+        let tables_before = self.count_all_rows()
         let _ = self.run_schedule(inner)
-        if self.version == ver {
+        let pending_after = self.pending.length()
+        let tables_after = self.count_all_rows()
+        if pending_before == pending_after && tables_before == tables_after {
           return Saturated
         }
       }
