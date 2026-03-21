@@ -8,6 +8,10 @@ A relational e-graph engine (egglog) in MoonBit. Combines Datalog-style queries 
 cd egglog && moon check && moon test
 ```
 
+## Dependencies
+
+- [`dowdiness/incr`](https://mooncakes.io/docs/dowdiness/incr) v0.4.1 — incremental recomputation with `FunctionalRelation` for semi-naive Datalog evaluation
+
 ## Documentation
 
 - [Design](docs/plans/2026-03-08-egglog-design.md) — architecture, data model, rule engine, STLC example
