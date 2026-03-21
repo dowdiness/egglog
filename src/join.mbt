@@ -183,19 +183,3 @@ fn execute_query(
   execute_query_with(db, query, fn(table, _i) { table.scan() })
 }
 
-///|
-/// Semi-naive query execution: reads delta_scan() for the first Fact atom
-/// (seed) and scan() for remaining atoms.
-#warnings("-unused_value")
-fn execute_query_semi_naive(
-  db : Database,
-  query : Array[Atom],
-) -> Array[Map[String, Value]] {
-  execute_query_with(db, query, fn(table, i) {
-    if i == 0 {
-      table.delta_scan()
-    } else {
-      table.scan()
-    }
-  })
-}

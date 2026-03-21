@@ -257,52 +257,119 @@ fn Database::rebuild_table(
 /// and output relations are the tables mentioned in Set actions.  The rule
 /// body uses semi-naive query execution so that each fixpoint iteration only
 /// processes newly derived rows.
-fn Database::register_incr_rule(self : Database, rule : Rule) -> Unit {
+fn Database::register_incr_rule(
+  self : Database,
+  rule : Rule,
+  seed_index : Int,
+) -> Unit {
   // Guard: abort on duplicate rule names within the same Saturate scope.
-  if self.registered_rules.contains(rule.name) {
-    abort("duplicate rule name: " + rule.name)
+  // Semi-naive variants use name#index to distinguish.
+  let variant_name = rule.name + "#" + seed_index.to_string()
+  if self.registered_rules.contains(variant_name) {
+    abort("duplicate rule name: " + variant_name)
   }
-  self.registered_rules[rule.name] = ()
-  let input_ids : Array[@incr.CellId] = []
+  self.registered_rules[variant_name] = ()
+  // Collect input table IDs by walking all terms in query atoms.
+  let input_names : Map[String, Unit] = {}
   for atom in rule.query {
     match atom {
-      Fact(name, _) =>
-        match self.tables.get(name) {
-          Some(t) => input_ids.push(t.id())
-          None => ()
+      Fact(name, terms) => {
+        input_names[name] = ()
+        for t in terms {
+          collect_table_names(t, input_names)
         }
-      _ => ()
+      }
+      Equal(lhs, rhs) => {
+        collect_table_names(lhs, input_names)
+        collect_table_names(rhs, input_names)
+      }
+    }
+  }
+  let input_ids : Array[@incr.CellId] = []
+  input_names.each(fn(name, _) {
+    match self.tables.get(name) {
+      Some(t) => input_ids.push(t.id())
+      None => ()
+    }
+  })
+  // Collect output table IDs by walking all terms in actions.
+  let output_names : Map[String, Unit] = {}
+  for action in rule.actions {
+    match action {
+      Set(name, args, val) => {
+        output_names[name] = ()
+        for t in args {
+          collect_table_names(t, output_names)
+        }
+        collect_table_names(val, output_names)
+      }
+      Union(lhs, rhs) => {
+        collect_table_names(lhs, output_names)
+        collect_table_names(rhs, output_names)
+      }
+      LetAction(_, term) => collect_table_names(term, output_names)
     }
   }
   let output_ids : Array[@incr.CellId] = []
-  for action in rule.actions {
-    match action {
-      Set(name, _, _) =>
-        match self.tables.get(name) {
-          Some(t) => output_ids.push(t.id())
-          None => ()
-        }
-      _ => ()
+  output_names.each(fn(name, _) {
+    match self.tables.get(name) {
+      Some(t) => output_ids.push(t.id())
+      None => ()
     }
-  }
+  })
   let _ = self.rt.new_rule(
     input_ids,
     output_ids,
     fn() {
-      let substs = execute_query_semi_naive(self, rule.query)
+      let substs = execute_query_with(self, rule.query, fn(table, i) {
+        if i == seed_index {
+          table.delta_scan()
+        } else {
+          table.scan()
+        }
+      })
       for s in substs {
         let _ = execute_actions(self, s, rule.actions)
       }
     },
-    label=rule.name,
+    label=variant_name,
   )
 }
 
 ///|
-/// Recursively register all rules from a schedule tree.
+/// Collect all table names referenced by Call nodes in a term tree.
+fn collect_table_names(term : Term, names : Map[String, Unit]) -> Unit {
+  match term {
+    Var(_) | Lit(_) => ()
+    Call(name, args) => {
+      names[name] = ()
+      for t in args {
+        collect_table_names(t, names)
+      }
+    }
+  }
+}
+
+///|
+/// Count the number of Fact atoms in a query (determines how many
+/// semi-naive variants to register per rule).
+fn count_facts(query : Array[Atom]) -> Int {
+  let mut count = 0
+  for atom in query {
+    match atom {
+      Fact(_, _) => count = count + 1
+      _ => ()
+    }
+  }
+  count
+}
+
+///|
+/// Register all rules from a schedule tree, one variant per Fact atom
+/// for semi-naive evaluation.
 ///
-/// This walks the schedule to find every `Run` leaf and registers each rule
-/// with the incr runtime so that `fixpoint()` can drive them.
+/// Only `Run` leaves are supported inside `Saturate`. Nested `Repeat`
+/// and `Seq` are rejected — use them outside `Saturate` instead.
 fn Database::register_schedule_rules(
   self : Database,
   schedule : Schedule,
@@ -310,10 +377,18 @@ fn Database::register_schedule_rules(
   match schedule {
     Run(rules) =>
       for rule in rules {
-        self.register_incr_rule(rule)
+        let n_facts = count_facts(rule.query)
+        // Register one variant per fact atom position so that deltas
+        // from any input relation seed the join.
+        for seed = 0; seed < n_facts; seed = seed + 1 {
+          self.register_incr_rule(rule, seed)
+        }
       }
     Saturate(inner, _) => self.register_schedule_rules(inner)
-    Repeat(_, inner) => self.register_schedule_rules(inner)
+    Repeat(_, _) =>
+      abort(
+        "register_schedule_rules: Repeat inside Saturate is not supported; use Repeat outside Saturate",
+      )
     Seq(schedules) =>
       for s in schedules {
         self.register_schedule_rules(s)
