@@ -11,7 +11,7 @@
 /// A function table: maps input tuples to output values.
 /// Arity includes the output column (e.g., Add(Expr, Expr) -> Expr has arity 3).
 priv struct FunctionTable {
-  fr : @incr.FunctionalRelation[String, Value]
+  mut fr : @incr.FunctionalRelation[String, Value]
   rows : Map[String, Value]
   raw_keys : Map[String, Array[Value]]
   merge : ((Value, Value) -> Value)?
@@ -139,4 +139,19 @@ fn FunctionTable::delta_scan(
 #warnings("-unused_value")
 fn FunctionTable::id(self : FunctionTable) -> @incr.CellId {
   self.fr.id()
+}
+
+///|
+/// Rebind this table to a new Runtime for a fresh Saturate scope.
+///
+/// Creates a new FunctionalRelation on the given Runtime and seeds all
+/// current rows into its delta so the first fixpoint iteration sees them.
+fn FunctionTable::reset_fr(self : FunctionTable, rt : @incr.Runtime) -> Unit {
+  let fr = match self.merge {
+    Some(f) => @incr.FunctionalRelation::new(rt, merge=f)
+    None => @incr.FunctionalRelation::new(rt)
+  }
+  // Seed current rows into the new FR's delta
+  self.rows.each(fn(ks, v) { let _ = fr.insert(ks, v) })
+  self.fr = fr
 }

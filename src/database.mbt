@@ -6,7 +6,7 @@
 /// and `pending` remembers unions that still need to be propagated.
 /// The egglog database: a collection of function tables + union-find.
 pub struct Database {
-  priv rt : @incr.Runtime
+  priv mut rt : @incr.Runtime
   priv uf : UnionFind
   priv tables : Map[String, FunctionTable]
   priv pending : Array[(Id, Id)]
@@ -258,9 +258,9 @@ fn Database::rebuild_table(
 /// body uses semi-naive query execution so that each fixpoint iteration only
 /// processes newly derived rows.
 fn Database::register_incr_rule(self : Database, rule : Rule) -> Unit {
-  // Guard: skip if this rule was already registered.
+  // Guard: abort on duplicate rule names within the same Saturate scope.
   if self.registered_rules.contains(rule.name) {
-    return
+    abort("duplicate rule name: " + rule.name)
   }
   self.registered_rules[rule.name] = ()
   let input_ids : Array[@incr.CellId] = []

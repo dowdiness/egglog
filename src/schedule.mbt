@@ -51,24 +51,34 @@ pub fn Database::run_schedule(
       Saturated
     }
     Saturate(inner, max_iters) => {
-      // Register rules from the inner schedule as incr rules so fixpoint()
-      // can drive semi-naive evaluation.
+      // Create a fresh Runtime scoped to this Saturate call so rules
+      // from a previous Saturate do not leak into this one.
+      let sat_rt = @incr.Runtime::new()
+      self.tables.each(fn(_name, table) { table.reset_fr(sat_rt) })
+      let old_rt = self.rt
+      self.rt = sat_rt
+      self.registered_rules.clear()
+      // Register rules from the inner schedule.
       self.register_schedule_rules(inner)
       // Process any pending unions before fixpoint.
       if self.pending.length() > 0 {
         self.rebuild()
       }
-      for i = 0; i < max_iters; i = i + 1 {
+      let result : StopReason = for i = 0; i < max_iters; i = i + 1 {
         // Run one fixpoint pass (drains deltas, applies rules, converges).
         self.rt.fixpoint()
         // Process any unions generated during fixpoint (congruence).
         if self.pending.length() > 0 {
           self.rebuild()
         } else {
-          return Saturated
+          break Saturated
         }
+      } nobreak {
+        IterLimit
       }
-      IterLimit
+      // Restore the original Runtime for subsequent schedule calls.
+      self.rt = old_rt
+      result
     }
     Repeat(n, inner) => {
       let mut last_reason = Saturated
