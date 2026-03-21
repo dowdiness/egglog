@@ -40,7 +40,10 @@ pub fn Database::register(
   name : String,
   merge? : ((Value, Value) -> Value)? = None,
 ) -> Unit {
-  self.tables[name] = FunctionTable::new(merge)
+  // TODO(task-3): Database should own a single Runtime; for now each table
+  // gets a throwaway one so that the signature compiles.
+  let rt = @incr.Runtime::new()
+  self.tables[name] = FunctionTable::new(rt, merge)
 }
 
 ///|

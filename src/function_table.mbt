@@ -5,17 +5,28 @@
 /// Conflict policy lives here: duplicate rows are ignored, merge tables combine
 /// competing values, and plain tables leave conflict detection to higher-level
 /// database logic.
+///
+/// Dual storage: `rows` for immediate O(log n) lookup (existing behaviour),
+/// `fr` (`@incr.FunctionalRelation`) for delta tracking (new).
 /// A function table: maps input tuples to output values.
 /// Arity includes the output column (e.g., Add(Expr, Expr) -> Expr has arity 3).
 priv struct FunctionTable {
+  fr : @incr.FunctionalRelation[String, Value]
   rows : Map[String, Value]
   raw_keys : Map[String, Array[Value]]
   merge : ((Value, Value) -> Value)?
 }
 
 ///|
-fn FunctionTable::new(merge : ((Value, Value) -> Value)?) -> FunctionTable {
-  { rows: {}, raw_keys: {}, merge }
+fn FunctionTable::new(
+  rt : @incr.Runtime,
+  merge : ((Value, Value) -> Value)?,
+) -> FunctionTable {
+  let fr = match merge {
+    Some(f) => @incr.FunctionalRelation::new(rt, merge=f)
+    None => @incr.FunctionalRelation::new(rt)
+  }
+  { fr, rows: {}, raw_keys: {}, merge }
 }
 
 ///|
@@ -39,6 +50,7 @@ fn key_string(key : Array[Value]) -> String {
 ///
 /// Returns `(stored_value, changed)` where `changed` tells callers whether the
 /// table's semantic content changed. That signal feeds scheduling and rebuild.
+/// Writes to both `rows` (immediate lookup) and `fr` (delta tracking).
 fn FunctionTable::insert(
   self : FunctionTable,
   key : Array[Value],
@@ -57,6 +69,7 @@ fn FunctionTable::insert(
               (old, false)
             } else {
               self.rows[ks] = merged
+              let _ = self.fr.insert(ks, merged)
               (merged, true)
             }
           }
@@ -66,6 +79,7 @@ fn FunctionTable::insert(
     None => {
       self.rows[ks] = value
       self.raw_keys[ks] = key
+      let _ = self.fr.insert(ks, value)
       (value, true)
     }
   }
@@ -98,4 +112,31 @@ fn FunctionTable::scan(self : FunctionTable) -> Array[(Array[Value], Value)] {
     }
   })
   result
+}
+
+///|
+/// Scan only rows that changed since the last delta scan.
+///
+/// Returns structured keys (from `raw_keys`) paired with their values, but only
+/// for entries that appear in the `FunctionalRelation` delta buffer.
+#warnings("-unused_value")
+fn FunctionTable::delta_scan(
+  self : FunctionTable,
+) -> Array[(Array[Value], Value)] {
+  let result : Array[(Array[Value], Value)] = []
+  for entry in self.fr.delta_iter() {
+    let (ks, v) = entry
+    match self.raw_keys.get(ks) {
+      Some(key) => result.push((key, v))
+      None => ()
+    }
+  }
+  result
+}
+
+///|
+/// The reactive cell id for this table's `FunctionalRelation`.
+#warnings("-unused_value")
+fn FunctionTable::id(self : FunctionTable) -> @incr.CellId {
+  self.fr.id()
 }
