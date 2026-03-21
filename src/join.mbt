@@ -115,15 +115,19 @@ fn unify_row(
 }
 
 ///|
-/// Execute a conjunctive query with a simple nested-loop join strategy.
+/// Core query execution with configurable row source per fact atom.
 ///
-/// `Fact` atoms contribute rows, while `Equal` atoms are evaluated only after
-/// the fact joins have produced candidate substitutions.
-fn execute_query(
+/// `row_source(table, atom_index)` returns the rows to join against.
+/// - Full scan (`execute_query`): uses `table.scan()` for all atoms.
+/// - Semi-naive: uses `table.delta_scan()` for the seed atom (at
+///   `seed_index`) and `table.scan()` for all others. One variant is
+///   registered per Fact atom so deltas from any input relation seed
+///   the join (see `Database::register_incr_rule`).
+fn execute_query_with(
   db : Database,
   query : Array[Atom],
+  row_source : (FunctionTable, Int) -> Array[(Array[Value], Value)],
 ) -> Array[Map[String, Value]] {
-  // Separate row-producing atoms from post-filter equality checks.
   let facts : Array[(String, Array[Term])] = []
   let equals : Array[(Term, Term)] = []
   for atom in query {
@@ -132,22 +136,18 @@ fn execute_query(
       Equal(lhs, rhs) => equals.push((lhs, rhs))
     }
   }
-  // Start from the identity relation containing one empty environment.
   let mut substs : Array[Map[String, Value]] = [{}]
-  // Each fact performs a join against the current substitution frontier.
-  for fact in facts {
+  for i, fact in facts {
     let (name, terms) = fact
     let table = match db.tables.get(name) {
       Some(t) => t
       None => return []
     }
-    let rows = table.scan()
+    let rows = row_source(table, i)
     let new_substs : Array[Map[String, Value]] = []
     for s in substs {
       for row_pair in rows {
         let (key, value) = row_pair
-        // Tables store input columns separately from the output column, but
-        // query atoms talk about the whole functional row at once.
         let full_row : Array[Value] = key.copy()
         full_row.push(value)
         for extended in unify_row(db, s, terms, full_row) {
@@ -157,7 +157,6 @@ fn execute_query(
     }
     substs = new_substs
   }
-  // Equality atoms act like a WHERE clause over the joined substitutions.
   let result : Array[Map[String, Value]] = []
   for s in substs {
     let mut ok = true
@@ -176,4 +175,13 @@ fn execute_query(
     }
   }
   result
+}
+
+///|
+/// Execute a conjunctive query with full table scans.
+fn execute_query(
+  db : Database,
+  query : Array[Atom],
+) -> Array[Map[String, Value]] {
+  execute_query_with(db, query, fn(table, _i) { table.scan() })
 }

@@ -15,7 +15,7 @@ Build a relational e-graph engine (egglog) as a new MoonBit module. First target
 | Primary use case | Bidirectional type inference (STLC) | Exercises egglog's unique strength (top-down + bottom-up flow) |
 | Relationship to egraph | Copy UnionFind/Id, no dependency | Architectures diverge; egglog's UF may need proof-producing union later |
 | DSL parser | Programmatic MoonBit API only (initially) | Engine first; parser can be added as separate package via loom later |
-| Incremental evaluation | Naive (full-rescan) first, incr later | Correctness before optimization; table design supports delta tracking |
+| Incremental evaluation | Semi-naive via `dowdiness/incr` `FunctionalRelation` | Each table tracks deltas; `Saturate` uses `fixpoint()` with one rule variant per Fact atom |
 | Join algorithm | Binary join with hash index | Sufficient for 2-3 way joins in type inference; upgradeable to WCOJ |
 | Type system target | STLC (Int, Arrow) | Simplest system demonstrating bidirectional checking |
 
@@ -397,11 +397,14 @@ loom/egglog/
 - `App(Lam("x", Var("x")), Num(42))` synthesizes `IntTy` (both directions cooperate)
 - Type error: `Add(Num(1), Lam("x", Var("x")))` — cannot unify `Arrow` with `IntTy`
 
+## Completed Extensions
+
+- **Semi-naive evaluation via incr**: Each `FunctionTable` wraps `@incr.FunctionalRelation[String, Value]` for delta tracking. `Saturate` registers one rule variant per Fact atom with `@incr.Runtime::fixpoint()` for convergent evaluation. See `src/README.mbt.md` for details.
+
 ## Future Extensions
 
-These are explicitly **out of scope** for the initial implementation but the design accommodates them:
+These are explicitly **out of scope** but the design accommodates them:
 
-- **Semi-naive evaluation via incr**: Track per-table deltas with `Signal[Array[Row]]`, only match rules against new facts
 - **WCOJ generic join**: Replace binary join with worst-case optimal join for complex multi-way patterns
 - **DSL parser via loom**: Parse egglog s-expression syntax into Rule/Action structs
 - **Proof production**: Record which rule justified each union/insertion for explanation extraction

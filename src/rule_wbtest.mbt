@@ -1,7 +1,7 @@
 ///|
 /// Rule tests focus on the little language used by schedules.
 test "eval_term Lit returns value" {
-  let db = Database::new()
+  let db = Database()
   let subst : Map[String, Value] = {}
   let result = eval_term(db, subst, Lit(IntVal(42)))
   inspect(result, content="IntVal(42)")
@@ -9,7 +9,7 @@ test "eval_term Lit returns value" {
 
 ///|
 test "eval_term Var looks up substitution" {
-  let db = Database::new()
+  let db = Database()
   let subst : Map[String, Value] = { "x": IntVal(7) }
   let result = eval_term(db, subst, Var("x"))
   inspect(result, content="IntVal(7)")
@@ -17,7 +17,7 @@ test "eval_term Var looks up substitution" {
 
 ///|
 test "eval_term Call creates node in database" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let subst : Map[String, Value] = {}
   let result = eval_term(db, subst, Call("Num", [Lit(IntVal(42))]))

@@ -4,17 +4,33 @@
 /// The database is the bridge between relational storage and equality
 /// reasoning: function tables hold rows, union-find holds equivalence classes,
 /// and `pending` remembers unions that still need to be propagated.
-/// The egglog database: a collection of function tables + union-find.
+/// The egglog database: function tables + union-find + incr runtime.
+///
+/// `rt` is the incr `Runtime` used for semi-naive fixpoint evaluation.
+/// It is replaced with a fresh instance at the start of each `Saturate`
+/// call to scope rules and deltas to that execution.
+///
+/// `registered_rules` tracks which rule variants have been registered
+/// with the current `rt` to prevent duplicates within a Saturate scope.
 pub struct Database {
+  priv mut rt : @incr.Runtime
   priv uf : UnionFind
   priv tables : Map[String, FunctionTable]
   priv pending : Array[(Id, Id)]
-  priv mut version : Int
+  priv registered_rules : Map[String, Unit]
+
+  fn new() -> Database
 }
 
 ///|
 pub fn Database::new() -> Database {
-  { uf: UnionFind::new(), tables: {}, pending: [], version: 0 }
+  {
+    rt: @incr.Runtime::new(),
+    uf: UnionFind(),
+    tables: {},
+    pending: [],
+    registered_rules: {},
+  }
 }
 
 ///|
@@ -40,7 +56,7 @@ pub fn Database::register(
   name : String,
   merge? : ((Value, Value) -> Value)? = None,
 ) -> Unit {
-  self.tables[name] = FunctionTable::new(merge)
+  self.tables[name] = FunctionTable(self.rt, merge)
 }
 
 ///|
@@ -88,7 +104,6 @@ pub fn Database::call(
     None => {
       let output = IdVal(self.alloc_id())
       let _ = table.insert(canon, output)
-      self.version = self.version + 1
       output
     }
   }
@@ -120,17 +135,13 @@ pub fn Database::set(
         match (canon_old, canon_val) {
           (IdVal(a), IdVal(b)) => {
             self.pending.push((a, b))
-            self.version = self.version + 1
             let (stored, _) = table.insert(canon, canon_val)
             stored
           }
           _ =>
             match table.merge {
               Some(_) => {
-                let (stored, changed) = table.insert(canon, canon_val)
-                if changed {
-                  self.version = self.version + 1
-                }
+                let (stored, _) = table.insert(canon, canon_val)
                 stored
               }
               None =>
@@ -150,7 +161,6 @@ pub fn Database::set(
     }
     None => {
       let _ = table.insert(canon, canon_val)
-      self.version = self.version + 1
       canon_val
     }
   }
@@ -168,7 +178,6 @@ pub fn Database::union(self : Database, a : Id, b : Id) -> Unit {
     return
   }
   self.pending.push((ra, rb))
-  self.version = self.version + 1
 }
 
 ///|
@@ -195,6 +204,13 @@ pub fn Database::rebuild(self : Database) -> Unit {
 ///
 /// This is where equality collapse can turn previously distinct rows into a
 /// conflict on the same canonical key.
+///
+/// Note: `table.insert` writes to both `rows` and `fr`. After rebuild, `fr`
+/// may contain stale entries under old (pre-canonicalization) key strings.
+/// These are harmless: `delta_scan` drops them via `raw_keys.get()` returning
+/// None. The next `fixpoint()` will re-process all rebuilt rows as new deltas,
+/// which is correct but slightly wasteful. This trade-off is acceptable since
+/// rebuild only runs when unions cause congruence (relatively rare).
 fn Database::rebuild_table(
   self : Database,
   name : String,
@@ -240,6 +256,156 @@ fn Database::rebuild_table(
         let _ = table.insert(canon_key, canon_val)
       }
     }
+  }
+}
+
+///|
+/// Register one semi-naive variant of an egglog Rule with the incr Runtime.
+///
+/// `seed_index` selects which Fact atom reads `delta_scan()` (new rows
+/// only); all other atoms read `scan()` (all rows). One variant per
+/// Fact atom is registered by `register_schedule_rules` so that deltas
+/// from any input relation can seed the join.
+///
+/// Input/output table dependencies are collected by recursively walking
+/// all Term trees in query atoms and actions, including nested `Call`
+/// nodes inside `Equal` atoms and `Union`/`LetAction` actions.
+fn Database::register_incr_rule(
+  self : Database,
+  rule : Rule,
+  seed_index : Int,
+) -> Unit {
+  // Guard: abort on duplicate rule names within the same Saturate scope.
+  // Semi-naive variants use name#index to distinguish.
+  let variant_name = rule.name + "#" + seed_index.to_string()
+  if self.registered_rules.contains(variant_name) {
+    abort("duplicate rule name: " + variant_name)
+  }
+  self.registered_rules[variant_name] = ()
+  // Collect input table IDs by walking all terms in query atoms.
+  let input_names : Map[String, Unit] = {}
+  for atom in rule.query {
+    match atom {
+      Fact(name, terms) => {
+        input_names[name] = ()
+        for t in terms {
+          collect_table_names(t, input_names)
+        }
+      }
+      Equal(lhs, rhs) => {
+        collect_table_names(lhs, input_names)
+        collect_table_names(rhs, input_names)
+      }
+    }
+  }
+  let input_ids : Array[@incr.CellId] = []
+  input_names.each(fn(name, _) {
+    match self.tables.get(name) {
+      Some(t) => input_ids.push(t.id())
+      None => ()
+    }
+  })
+  // Collect output table IDs by walking all terms in actions.
+  let output_names : Map[String, Unit] = {}
+  for action in rule.actions {
+    match action {
+      Set(name, args, val) => {
+        output_names[name] = ()
+        for t in args {
+          collect_table_names(t, output_names)
+        }
+        collect_table_names(val, output_names)
+      }
+      Union(lhs, rhs) => {
+        collect_table_names(lhs, output_names)
+        collect_table_names(rhs, output_names)
+      }
+      LetAction(_, term) => collect_table_names(term, output_names)
+    }
+  }
+  let output_ids : Array[@incr.CellId] = []
+  output_names.each(fn(name, _) {
+    match self.tables.get(name) {
+      Some(t) => output_ids.push(t.id())
+      None => ()
+    }
+  })
+  let _ = self.rt.new_rule(
+    input_ids,
+    output_ids,
+    fn() {
+      let substs = execute_query_with(self, rule.query, fn(table, i) {
+        if i == seed_index {
+          table.delta_scan()
+        } else {
+          table.scan()
+        }
+      })
+      for s in substs {
+        let _ = execute_actions(self, s, rule.actions)
+      }
+    },
+    label=variant_name,
+  )
+}
+
+///|
+/// Collect all table names referenced by Call nodes in a term tree.
+fn collect_table_names(term : Term, names : Map[String, Unit]) -> Unit {
+  match term {
+    Var(_) | Lit(_) => ()
+    Call(name, args) => {
+      names[name] = ()
+      for t in args {
+        collect_table_names(t, names)
+      }
+    }
+  }
+}
+
+///|
+/// Count the number of Fact atoms in a query (determines how many
+/// semi-naive variants to register per rule).
+fn count_facts(query : Array[Atom]) -> Int {
+  let mut count = 0
+  for atom in query {
+    match atom {
+      Fact(_, _) => count = count + 1
+      _ => ()
+    }
+  }
+  count
+}
+
+///|
+/// Register all rules from a schedule tree, one variant per Fact atom
+/// for semi-naive evaluation.
+///
+/// Only `Run` leaves are supported inside `Saturate`. Nested `Repeat`
+/// and `Seq` are rejected — use them outside `Saturate` instead.
+fn Database::register_schedule_rules(
+  self : Database,
+  schedule : Schedule,
+) -> Unit {
+  match schedule {
+    Run(rules) =>
+      for rule in rules {
+        let n_facts = count_facts(rule.query)
+        // Register one variant per fact atom position so that deltas
+        // from any input relation seed the join.
+        for seed = 0; seed < n_facts; seed = seed + 1 {
+          self.register_incr_rule(rule, seed)
+        }
+      }
+    Saturate(inner, _) => self.register_schedule_rules(inner)
+    Repeat(_, _) =>
+      abort(
+        "register_schedule_rules: Repeat inside Saturate is not supported; use Repeat outside Saturate",
+      )
+    Seq(schedules) =>
+      for s in schedules {
+        self.register_schedule_rules(s)
+      }
   }
 }
 

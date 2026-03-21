@@ -23,6 +23,8 @@ type Rank = Int
 priv struct UnionFind {
   parents : Array[Id]
   ranks : Array[Rank]
+
+  fn new() -> UnionFind
 } derive(Default, Show, Debug)
 
 ///|

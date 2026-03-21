@@ -1,7 +1,7 @@
 ///|
 /// Query tests show how substitutions are produced and filtered.
 test "single atom query scans table" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let _ = db.call("Num", [IntVal(1)])
   let _ = db.call("Num", [IntVal(2)])
@@ -12,7 +12,7 @@ test "single atom query scans table" {
 
 ///|
 test "single atom with literal filters" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let _ = db.call("Num", [IntVal(1)])
   let _ = db.call("Num", [IntVal(2)])
@@ -23,7 +23,7 @@ test "single atom with literal filters" {
 
 ///|
 test "two atom join with shared variable" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Add")
   let n1 = db.call("Num", [IntVal(1)])
@@ -39,7 +39,7 @@ test "two atom join with shared variable" {
 
 ///|
 test "equal constraint filters" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let _ = db.call("Num", [IntVal(1)])
   let _ = db.call("Num", [IntVal(2)])
@@ -53,7 +53,7 @@ test "equal constraint filters" {
 
 ///|
 test "empty result when no match" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let _ = db.call("Num", [IntVal(1)])
   // No matching row means the whole query result is empty.
@@ -63,7 +63,7 @@ test "empty result when no match" {
 
 ///|
 test "nested call pattern learns variables from matched row" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Add")
   let lhs = db.call("Num", [IntVal(1)])

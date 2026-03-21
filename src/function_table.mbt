@@ -5,17 +5,40 @@
 /// Conflict policy lives here: duplicate rows are ignored, merge tables combine
 /// competing values, and plain tables leave conflict detection to higher-level
 /// database logic.
-/// A function table: maps input tuples to output values.
-/// Arity includes the output column (e.g., Add(Expr, Expr) -> Expr has arity 3).
+///
+/// **Dual storage:**
+/// - `rows` (`Map[String, Value]`) — authoritative key-value store for
+///   immediate O(log n) lookup via `lookup()` and full scan via `scan()`.
+/// - `fr` (`@incr.FunctionalRelation[String, Value]`) — delta tracking for
+///   semi-naive evaluation. Every write to `rows` also writes to `fr`, so
+///   `delta_scan()` returns only rows that are new or changed since the last
+///   `fixpoint()` drain.
+///
+/// The `fr` field is rebound to a fresh `@incr.Runtime` at the start of each
+/// `Saturate` call via `reset_fr()`, which seeds all current rows into the
+/// new `fr`'s delta so the first fixpoint iteration processes them.
 priv struct FunctionTable {
+  mut fr : @incr.FunctionalRelation[String, Value]
   rows : Map[String, Value]
   raw_keys : Map[String, Array[Value]]
   merge : ((Value, Value) -> Value)?
+
+  fn new(
+    rt : @incr.Runtime,
+    merge : ((Value, Value) -> Value)?,
+  ) -> FunctionTable
 }
 
 ///|
-fn FunctionTable::new(merge : ((Value, Value) -> Value)?) -> FunctionTable {
-  { rows: {}, raw_keys: {}, merge }
+fn FunctionTable::new(
+  rt : @incr.Runtime,
+  merge : ((Value, Value) -> Value)?,
+) -> FunctionTable {
+  let fr = match merge {
+    Some(f) => @incr.FunctionalRelation::new(rt, merge=f)
+    None => @incr.FunctionalRelation::new(rt)
+  }
+  { fr, rows: {}, raw_keys: {}, merge }
 }
 
 ///|
@@ -39,6 +62,7 @@ fn key_string(key : Array[Value]) -> String {
 ///
 /// Returns `(stored_value, changed)` where `changed` tells callers whether the
 /// table's semantic content changed. That signal feeds scheduling and rebuild.
+/// Writes to both `rows` (immediate lookup) and `fr` (delta tracking).
 fn FunctionTable::insert(
   self : FunctionTable,
   key : Array[Value],
@@ -57,6 +81,7 @@ fn FunctionTable::insert(
               (old, false)
             } else {
               self.rows[ks] = merged
+              let _ = self.fr.insert(ks, merged)
               (merged, true)
             }
           }
@@ -66,6 +91,7 @@ fn FunctionTable::insert(
     None => {
       self.rows[ks] = value
       self.raw_keys[ks] = key
+      let _ = self.fr.insert(ks, value)
       (value, true)
     }
   }
@@ -98,4 +124,46 @@ fn FunctionTable::scan(self : FunctionTable) -> Array[(Array[Value], Value)] {
     }
   })
   result
+}
+
+///|
+/// Scan only rows that changed since the last delta scan.
+///
+/// Returns structured keys (from `raw_keys`) paired with their values, but only
+/// for entries that appear in the `FunctionalRelation` delta buffer.
+#warnings("-unused_value")
+fn FunctionTable::delta_scan(
+  self : FunctionTable,
+) -> Array[(Array[Value], Value)] {
+  let result : Array[(Array[Value], Value)] = []
+  for entry in self.fr.delta_iter() {
+    let (ks, v) = entry
+    match self.raw_keys.get(ks) {
+      Some(key) => result.push((key, v))
+      None => ()
+    }
+  }
+  result
+}
+
+///|
+/// The reactive cell id for this table's `FunctionalRelation`.
+#warnings("-unused_value")
+fn FunctionTable::id(self : FunctionTable) -> @incr.CellId {
+  self.fr.id()
+}
+
+///|
+/// Rebind this table to a new Runtime for a fresh Saturate scope.
+///
+/// Creates a new FunctionalRelation on the given Runtime and seeds all
+/// current rows into its delta so the first fixpoint iteration sees them.
+fn FunctionTable::reset_fr(self : FunctionTable, rt : @incr.Runtime) -> Unit {
+  let fr = match self.merge {
+    Some(f) => @incr.FunctionalRelation::new(rt, merge=f)
+    None => @incr.FunctionalRelation::new(rt)
+  }
+  // Seed current rows into the new FR's delta
+  self.rows.each(fn(ks, v) { let _ = fr.insert(ks, v) })
+  self.fr = fr
 }

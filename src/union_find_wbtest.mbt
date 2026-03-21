@@ -1,14 +1,14 @@
 ///|
 /// Small tests for the equality engine underneath the database.
 test "fresh id finds itself" {
-  let uf = UnionFind::new()
+  let uf = UnionFind()
   let a = uf.make_set()
   inspect(uf.find(a), content="0")
 }
 
 ///|
 test "union makes find agree" {
-  let uf = UnionFind::new()
+  let uf = UnionFind()
   let a = uf.make_set()
   let b = uf.make_set()
   let _ = uf.union(a, b)
@@ -17,7 +17,7 @@ test "union makes find agree" {
 
 ///|
 test "transitivity" {
-  let uf = UnionFind::new()
+  let uf = UnionFind()
   let a = uf.make_set()
   let b = uf.make_set()
   let c = uf.make_set()
@@ -28,7 +28,7 @@ test "transitivity" {
 
 ///|
 test "size tracks elements" {
-  let uf = UnionFind::new()
+  let uf = UnionFind()
   let _ = uf.make_set()
   let _ = uf.make_set()
   let _ = uf.make_set()

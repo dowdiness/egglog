@@ -47,14 +47,40 @@ tables. This avoids silent first-writer-wins behavior after equality collapse.
 - If you want multiple primitive outputs for the same key, model that as a
   relation instead of a functional table.
 
+## Semi-Naive Evaluation via `dowdiness/incr`
+
+Each `FunctionTable` uses **dual storage**:
+
+- `rows` (`Map[String, Value]`) — immediate lookup for `call`/`set`/`lookup`.
+- `fr` (`@incr.FunctionalRelation[String, Value]`) — delta tracking for
+  semi-naive evaluation. Rows inserted into `rows` are also written to `fr`.
+
+When `Saturate` runs, it creates a fresh `@incr.Runtime`, rebinds each table's
+`fr` to that Runtime (seeding current rows as initial deltas), and registers
+each rule as an incr rule. One variant is registered per `Fact` atom in the
+query, so that deltas from any input relation can seed the join.
+
+The `Runtime::fixpoint()` loop then drives evaluation:
+
+1. Drain each table's delta into current.
+2. Apply all rule variants — each reads `delta_scan()` for its seed atom and
+   `scan()` for the rest, producing new facts into staged deltas.
+3. Promote staged deltas to the next iteration's frontier.
+4. Repeat until no new facts are derived.
+
+After fixpoint converges, egglog checks for pending unions (from rule actions).
+If any exist, `rebuild()` re-canonicalizes table keys to detect congruences,
+which may produce new deltas for another fixpoint pass.
+
 ## Execution Pipeline
 
 Most interesting executions follow the same loop:
 
 1. Use `call` and `set` to build an initial database.
 2. Use `run_schedule` to fire rules.
-3. Let `rebuild` canonicalize table rows after unions.
-4. Use `lookup` to inspect derived facts or `extract` to choose a representative
+3. Inside `Saturate`, `fixpoint()` drives semi-naive rule application.
+4. After fixpoint, `rebuild` canonicalizes table rows after unions.
+5. Use `lookup` to inspect derived facts or `extract` to choose a representative
    expression.
 
 That split is important because equality is not applied eagerly to every row.
