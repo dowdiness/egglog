@@ -177,3 +177,66 @@ fn execute_query(
   }
   result
 }
+
+///|
+/// Semi-naive query execution: reads delta_scan() for the first Fact atom
+/// (seed) and scan() for remaining atoms.
+///
+/// In semi-naive evaluation the "seed" relation contributes only rows that
+/// were newly derived in the previous iteration (the delta), while the
+/// remaining relations are joined against the full accumulated set.  This
+/// avoids re-deriving facts that were already produced in earlier rounds.
+#warnings("-unused_value")
+fn execute_query_semi_naive(
+  db : Database,
+  query : Array[Atom],
+) -> Array[Map[String, Value]] {
+  let facts : Array[(String, Array[Term])] = []
+  let equals : Array[(Term, Term)] = []
+  for atom in query {
+    match atom {
+      Fact(name, terms) => facts.push((name, terms))
+      Equal(lhs, rhs) => equals.push((lhs, rhs))
+    }
+  }
+  let mut substs : Array[Map[String, Value]] = [{}]
+  for i, fact in facts {
+    let (name, terms) = fact
+    let table = match db.tables.get(name) {
+      Some(t) => t
+      None => return []
+    }
+    // First fact atom reads delta (new rows only); rest read all rows.
+    let rows = if i == 0 { table.delta_scan() } else { table.scan() }
+    let new_substs : Array[Map[String, Value]] = []
+    for s in substs {
+      for row_pair in rows {
+        let (key, value) = row_pair
+        let full_row : Array[Value] = key.copy()
+        full_row.push(value)
+        for extended in unify_row(db, s, terms, full_row) {
+          new_substs.push(extended)
+        }
+      }
+    }
+    substs = new_substs
+  }
+  let result : Array[Map[String, Value]] = []
+  for s in substs {
+    let mut ok = true
+    for eq in equals {
+      let (lhs, rhs) = eq
+      match (eval_term_opt(db, s, lhs), eval_term_opt(db, s, rhs)) {
+        (Some(lval), Some(rval)) =>
+          if db.canonicalize_value(lval) != db.canonicalize_value(rval) {
+            ok = false
+          }
+        _ => ok = false
+      }
+    }
+    if ok {
+      result.push(s)
+    }
+  }
+  result
+}
