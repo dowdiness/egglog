@@ -15,6 +15,11 @@ priv struct FunctionTable {
   rows : Map[String, Value]
   raw_keys : Map[String, Array[Value]]
   merge : ((Value, Value) -> Value)?
+
+  fn new(
+    rt : @incr.Runtime,
+    merge : ((Value, Value) -> Value)?,
+  ) -> FunctionTable
 }
 
 ///|

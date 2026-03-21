@@ -1,7 +1,7 @@
 ///|
 /// Schedule tests document the control flow around rule application.
 test "run applies rules once" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Add")
   let n1 = db.call("Num", [IntVal(1)])
@@ -23,7 +23,7 @@ test "run applies rules once" {
 
 ///|
 test "saturate reaches fixed point" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Add")
   let n1 = db.call("Num", [IntVal(1)])
@@ -41,7 +41,7 @@ test "saturate reaches fixed point" {
 
 ///|
 test "repeat respects limit" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Add")
   let n1 = db.call("Num", [IntVal(1)])
@@ -61,7 +61,7 @@ test "repeat respects limit" {
 
 ///|
 test "seq composes schedules" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Add")
   let n1 = db.call("Num", [IntVal(1)])
@@ -79,7 +79,7 @@ test "seq composes schedules" {
 
 ///|
 test "saturate flushes pending unions before first pass" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("HasType")
   let n1 = db.call("Num", [IntVal(1)])
@@ -113,7 +113,7 @@ fn max_int_value(old : Value, new : Value) -> Value {
 
 ///|
 test "saturate stops when merge keeps existing row" {
-  let db = Database::new()
+  let db = Database()
   let merge : ((Value, Value) -> Value)? = Some(max_int_value)
   db.register("Trigger")
   db.register("Score", merge~)

@@ -182,4 +182,3 @@ fn execute_query(
 ) -> Array[Map[String, Value]] {
   execute_query_with(db, query, fn(table, _i) { table.scan() })
 }
-

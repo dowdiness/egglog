@@ -11,13 +11,15 @@ pub struct Database {
   priv tables : Map[String, FunctionTable]
   priv pending : Array[(Id, Id)]
   priv registered_rules : Map[String, Unit]
+
+  fn new() -> Database
 }
 
 ///|
 pub fn Database::new() -> Database {
   {
     rt: @incr.Runtime::new(),
-    uf: UnionFind::new(),
+    uf: UnionFind(),
     tables: {},
     pending: [],
     registered_rules: {},
@@ -47,7 +49,7 @@ pub fn Database::register(
   name : String,
   merge? : ((Value, Value) -> Value)? = None,
 ) -> Unit {
-  self.tables[name] = FunctionTable::new(self.rt, merge)
+  self.tables[name] = FunctionTable(self.rt, merge)
 }
 
 ///|

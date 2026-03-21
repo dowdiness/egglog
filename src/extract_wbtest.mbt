@@ -1,7 +1,7 @@
 ///|
 /// Extraction tests explain how graph-shaped data turns back into a tree.
 test "extract single constant" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let v = db.call("Num", [IntVal(42)])
   db.rebuild()
@@ -17,7 +17,7 @@ test "extract single constant" {
 
 ///|
 test "extract picks cheaper after rewrite" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Add")
   let n0 = db.call("Num", [IntVal(0)])
@@ -47,7 +47,7 @@ test "extract picks cheaper after rewrite" {
 
 ///|
 test "extract preserves primitive arguments alongside child expressions" {
-  let db = Database::new()
+  let db = Database()
   db.register("Var")
   db.register("Lam")
   let var_x = db.call("Var", [StrVal("x")])
@@ -65,7 +65,7 @@ test "extract preserves primitive arguments alongside child expressions" {
 
 ///|
 test "extract preserves multiple primitive arguments" {
-  let db = Database::new()
+  let db = Database()
   db.register("Pair")
   let pair = db.call("Pair", [StrVal("left"), StrVal("right")])
   db.rebuild()

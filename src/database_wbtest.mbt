@@ -4,7 +4,7 @@
 /// These tests double as executable examples for interning, congruence
 /// closure, and the partial-function semantics of `set`.
 test "fresh id allocation" {
-  let db = Database::new()
+  let db = Database()
   let a = db.alloc_id()
   let b = db.alloc_id()
   inspect(a, content="0")
@@ -13,7 +13,7 @@ test "fresh id allocation" {
 
 ///|
 test "register and call function" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let id = db.call("Num", [IntVal(42)])
   inspect(id is IdVal(_), content="true")
@@ -21,7 +21,7 @@ test "register and call function" {
 
 ///|
 test "call same args returns same id" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let id1 = db.call("Num", [IntVal(42)])
   let id2 = db.call("Num", [IntVal(42)])
@@ -30,7 +30,7 @@ test "call same args returns same id" {
 
 ///|
 test "call different args returns different ids" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let id1 = db.call("Num", [IntVal(1)])
   let id2 = db.call("Num", [IntVal(2)])
@@ -39,7 +39,7 @@ test "call different args returns different ids" {
 
 ///|
 test "union and find" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   let v1 = db.call("Num", [IntVal(1)])
   let v2 = db.call("Num", [IntVal(2)])
@@ -55,7 +55,7 @@ test "union and find" {
 
 ///|
 test "congruence closure" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Add")
   let n1 = db.call("Num", [IntVal(1)])
@@ -80,7 +80,7 @@ test "congruence closure" {
 ///|
 /// Conflicting primitive facts are illegal for non-merged tables.
 test "panic conflicting primitive set without merge aborts" {
-  let db = Database::new()
+  let db = Database()
   db.register("Score")
   let _ = db.set("Score", [IntVal(1)], IntVal(10))
   ignore(db.set("Score", [IntVal(1)], IntVal(20)))
@@ -89,7 +89,7 @@ test "panic conflicting primitive set without merge aborts" {
 ///|
 /// A conflict may be discovered only after two input e-classes become equal.
 test "panic rebuild rejects conflicting primitive outputs after union" {
-  let db = Database::new()
+  let db = Database()
   db.register("Num")
   db.register("Color")
   let n1 = db.call("Num", [IntVal(1)])

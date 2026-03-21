@@ -28,6 +28,8 @@ pub impl @debug.Debug for Atom
 
 pub struct Database {
   // private fields
+
+  fn new() -> Database
 }
 pub fn Database::call(Self, String, Array[Value]) -> Value
 pub fn Database::extract(Self, Id, (String, Array[Int]) -> Int) -> (Int, ExtractedExpr)
