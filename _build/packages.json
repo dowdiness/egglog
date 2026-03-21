@@ -1,0 +1,347 @@
+{
+  "source_dir": "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog",
+  "name": "dowdiness/egglog",
+  "packages": [
+    {
+      "is-main": false,
+      "is-third-party": false,
+      "root-path": "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/examples/stlc",
+      "root": "dowdiness/egglog",
+      "rel": "examples/stlc",
+      "files": {
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/examples/stlc/stlc.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        }
+      },
+      "wbtest-files": {},
+      "test-files": {
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/examples/stlc/stlc_test.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        }
+      },
+      "mbt-md-files": {},
+      "deps": [
+        {
+          "path": "dowdiness/egglog/src",
+          "alias": "egglog",
+          "fspath": "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src"
+        },
+        {
+          "path": "moonbitlang/core/prelude",
+          "alias": "prelude",
+          "fspath": "/home/antisatori/.moon/lib/core/prelude"
+        }
+      ],
+      "wbtest-deps": [
+        {
+          "path": "moonbitlang/core/prelude",
+          "alias": "prelude",
+          "fspath": "/home/antisatori/.moon/lib/core/prelude"
+        }
+      ],
+      "test-deps": [
+        {
+          "path": "moonbitlang/core/prelude",
+          "alias": "prelude",
+          "fspath": "/home/antisatori/.moon/lib/core/prelude"
+        }
+      ],
+      "artifact": "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/_build/wasm-gc/release/check/examples/stlc/stlc.mi"
+    },
+    {
+      "is-main": false,
+      "is-third-party": false,
+      "root-path": "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src",
+      "root": "dowdiness/egglog",
+      "rel": "src",
+      "files": {
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/database.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/egglog.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/extract.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/function_table.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/join.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/rule.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/schedule.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/types.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/union_find.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        }
+      },
+      "wbtest-files": {
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/database_wbtest.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/extract_wbtest.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/function_table_wbtest.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/join_wbtest.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/rule_wbtest.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/schedule_wbtest.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        },
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/union_find_wbtest.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        }
+      },
+      "test-files": {
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/public_api_test.mbt": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        }
+      },
+      "mbt-md-files": {
+        "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/src/README.mbt.md": {
+          "backend": [
+            "Wasm",
+            "WasmGC",
+            "Js",
+            "Native",
+            "LLVM"
+          ],
+          "optlevel": [
+            "Release",
+            "Debug"
+          ]
+        }
+      },
+      "deps": [
+        {
+          "path": "moonbitlang/core/prelude",
+          "alias": "prelude",
+          "fspath": "/home/antisatori/.moon/lib/core/prelude"
+        }
+      ],
+      "wbtest-deps": [
+        {
+          "path": "moonbitlang/core/prelude",
+          "alias": "prelude",
+          "fspath": "/home/antisatori/.moon/lib/core/prelude"
+        }
+      ],
+      "test-deps": [
+        {
+          "path": "moonbitlang/core/prelude",
+          "alias": "prelude",
+          "fspath": "/home/antisatori/.moon/lib/core/prelude"
+        }
+      ],
+      "artifact": "/home/antisatori/ghq/github.com/dowdiness/crdt/loom/egglog/_build/wasm-gc/release/check/src/src.mi"
+    }
+  ],
+  "deps": [],
+  "backend": "wasm-gc",
+  "opt_level": "release",
+  "source": null
+}
