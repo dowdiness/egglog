@@ -237,13 +237,69 @@ fn Database::rebuild_table(
 }
 
 ///|
-/// Count total materialized rows across all tables.
+/// Register an egglog Rule as an incr rule for fixpoint evaluation.
 ///
-/// Used by `Saturate` to detect convergence without a version counter.
-fn Database::count_all_rows(self : Database) -> Int {
-  let mut total = 0
-  self.tables.each(fn(_name, table) { total = total + table.row_count() })
-  total
+/// Input relations are the tables mentioned in the rule's query atoms (Fact),
+/// and output relations are the tables mentioned in Set actions.  The rule
+/// body uses semi-naive query execution so that each fixpoint iteration only
+/// processes newly derived rows.
+fn Database::register_incr_rule(self : Database, rule : Rule) -> Unit {
+  let input_ids : Array[@incr.CellId] = []
+  for atom in rule.query {
+    match atom {
+      Fact(name, _) =>
+        match self.tables.get(name) {
+          Some(t) => input_ids.push(t.id())
+          None => ()
+        }
+      _ => ()
+    }
+  }
+  let output_ids : Array[@incr.CellId] = []
+  for action in rule.actions {
+    match action {
+      Set(name, _, _) =>
+        match self.tables.get(name) {
+          Some(t) => output_ids.push(t.id())
+          None => ()
+        }
+      _ => ()
+    }
+  }
+  let _ = self.rt.new_rule(
+    input_ids,
+    output_ids,
+    fn() {
+      let substs = execute_query_semi_naive(self, rule.query)
+      for s in substs {
+        let _ = execute_actions(self, s, rule.actions)
+      }
+    },
+    label=rule.name,
+  )
+}
+
+///|
+/// Recursively register all rules from a schedule tree.
+///
+/// This walks the schedule to find every `Run` leaf and registers each rule
+/// with the incr runtime so that `fixpoint()` can drive them.
+fn Database::register_schedule_rules(
+  self : Database,
+  schedule : Schedule,
+) -> Unit {
+  match schedule {
+    Run(rules) =>
+      for rule in rules {
+        self.register_incr_rule(rule)
+      }
+    Saturate(inner, _) => self.register_schedule_rules(inner)
+    Repeat(_, inner) => self.register_schedule_rules(inner)
+    Seq(schedules) =>
+      for s in schedules {
+        self.register_schedule_rules(s)
+      }
+  }
 }
 
 ///|

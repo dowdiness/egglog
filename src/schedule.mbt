@@ -51,17 +51,20 @@ pub fn Database::run_schedule(
       Saturated
     }
     Saturate(inner, max_iters) => {
-      // Flush any pending unions so the first pass sees up-to-date tables.
+      // Register rules from the inner schedule as incr rules so fixpoint()
+      // can drive semi-naive evaluation.
+      self.register_schedule_rules(inner)
+      // Process any pending unions before fixpoint.
       if self.pending.length() > 0 {
         self.rebuild()
       }
       for i = 0; i < max_iters; i = i + 1 {
-        let pending_before = self.pending.length()
-        let tables_before = self.count_all_rows()
-        let _ = self.run_schedule(inner)
-        let pending_after = self.pending.length()
-        let tables_after = self.count_all_rows()
-        if pending_before == pending_after && tables_before == tables_after {
+        // Run one fixpoint pass (drains deltas, applies rules, converges).
+        self.rt.fixpoint()
+        // Process any unions generated during fixpoint (congruence).
+        if self.pending.length() > 0 {
+          self.rebuild()
+        } else {
           return Saturated
         }
       }
