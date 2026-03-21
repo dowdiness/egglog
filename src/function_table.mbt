@@ -6,10 +6,17 @@
 /// competing values, and plain tables leave conflict detection to higher-level
 /// database logic.
 ///
-/// Dual storage: `rows` for immediate O(log n) lookup (existing behaviour),
-/// `fr` (`@incr.FunctionalRelation`) for delta tracking (new).
-/// A function table: maps input tuples to output values.
-/// Arity includes the output column (e.g., Add(Expr, Expr) -> Expr has arity 3).
+/// **Dual storage:**
+/// - `rows` (`Map[String, Value]`) — authoritative key-value store for
+///   immediate O(log n) lookup via `lookup()` and full scan via `scan()`.
+/// - `fr` (`@incr.FunctionalRelation[String, Value]`) — delta tracking for
+///   semi-naive evaluation. Every write to `rows` also writes to `fr`, so
+///   `delta_scan()` returns only rows that are new or changed since the last
+///   `fixpoint()` drain.
+///
+/// The `fr` field is rebound to a fresh `@incr.Runtime` at the start of each
+/// `Saturate` call via `reset_fr()`, which seeds all current rows into the
+/// new `fr`'s delta so the first fixpoint iteration processes them.
 priv struct FunctionTable {
   mut fr : @incr.FunctionalRelation[String, Value]
   rows : Map[String, Value]

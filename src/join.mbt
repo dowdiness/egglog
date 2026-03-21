@@ -118,8 +118,11 @@ fn unify_row(
 /// Core query execution with configurable row source per fact atom.
 ///
 /// `row_source(table, atom_index)` returns the rows to join against.
-/// Full scan uses `table.scan()` for all atoms; semi-naive uses
-/// `table.delta_scan()` for the first atom and `table.scan()` for the rest.
+/// - Full scan (`execute_query`): uses `table.scan()` for all atoms.
+/// - Semi-naive: uses `table.delta_scan()` for the seed atom (at
+///   `seed_index`) and `table.scan()` for all others. One variant is
+///   registered per Fact atom so deltas from any input relation seed
+///   the join (see `Database::register_incr_rule`).
 fn execute_query_with(
   db : Database,
   query : Array[Atom],

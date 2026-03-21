@@ -4,7 +4,14 @@
 /// The database is the bridge between relational storage and equality
 /// reasoning: function tables hold rows, union-find holds equivalence classes,
 /// and `pending` remembers unions that still need to be propagated.
-/// The egglog database: a collection of function tables + union-find.
+/// The egglog database: function tables + union-find + incr runtime.
+///
+/// `rt` is the incr `Runtime` used for semi-naive fixpoint evaluation.
+/// It is replaced with a fresh instance at the start of each `Saturate`
+/// call to scope rules and deltas to that execution.
+///
+/// `registered_rules` tracks which rule variants have been registered
+/// with the current `rt` to prevent duplicates within a Saturate scope.
 pub struct Database {
   priv mut rt : @incr.Runtime
   priv uf : UnionFind
@@ -253,12 +260,16 @@ fn Database::rebuild_table(
 }
 
 ///|
-/// Register an egglog Rule as an incr rule for fixpoint evaluation.
+/// Register one semi-naive variant of an egglog Rule with the incr Runtime.
 ///
-/// Input relations are the tables mentioned in the rule's query atoms (Fact),
-/// and output relations are the tables mentioned in Set actions.  The rule
-/// body uses semi-naive query execution so that each fixpoint iteration only
-/// processes newly derived rows.
+/// `seed_index` selects which Fact atom reads `delta_scan()` (new rows
+/// only); all other atoms read `scan()` (all rows). One variant per
+/// Fact atom is registered by `register_schedule_rules` so that deltas
+/// from any input relation can seed the join.
+///
+/// Input/output table dependencies are collected by recursively walking
+/// all Term trees in query atoms and actions, including nested `Call`
+/// nodes inside `Equal` atoms and `Union`/`LetAction` actions.
 fn Database::register_incr_rule(
   self : Database,
   rule : Rule,

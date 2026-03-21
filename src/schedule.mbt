@@ -35,9 +35,12 @@ fn Database::apply_rule(self : Database, rule : Rule) -> Int {
 ///|
 /// Execute a schedule tree.
 ///
-/// The important mental model is: `Run` performs one wave of rule firing,
-/// `rebuild` makes equalities visible, and `Saturate` watches pending unions
-/// and row counts to see whether another wave is needed.
+/// - `Run` performs one wave of rule firing (full scan) + rebuild.
+/// - `Saturate` creates a fresh `@incr.Runtime`, registers one rule variant
+///   per Fact atom for semi-naive evaluation, and calls `fixpoint()`. After
+///   fixpoint converges, if pending unions exist (from rule actions),
+///   `rebuild()` detects congruences and the outer loop repeats. Stops when
+///   no pending unions remain or `max_iters` is reached.
 pub fn Database::run_schedule(
   self : Database,
   schedule : Schedule,
