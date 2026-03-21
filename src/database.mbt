@@ -10,11 +10,18 @@ pub struct Database {
   priv uf : UnionFind
   priv tables : Map[String, FunctionTable]
   priv pending : Array[(Id, Id)]
+  priv registered_rules : Map[String, Unit]
 }
 
 ///|
 pub fn Database::new() -> Database {
-  { rt: @incr.Runtime::new(), uf: UnionFind::new(), tables: {}, pending: [] }
+  {
+    rt: @incr.Runtime::new(),
+    uf: UnionFind::new(),
+    tables: {},
+    pending: [],
+    registered_rules: {},
+  }
 }
 
 ///|
@@ -188,6 +195,13 @@ pub fn Database::rebuild(self : Database) -> Unit {
 ///
 /// This is where equality collapse can turn previously distinct rows into a
 /// conflict on the same canonical key.
+///
+/// Note: `table.insert` writes to both `rows` and `fr`. After rebuild, `fr`
+/// may contain stale entries under old (pre-canonicalization) key strings.
+/// These are harmless: `delta_scan` drops them via `raw_keys.get()` returning
+/// None. The next `fixpoint()` will re-process all rebuilt rows as new deltas,
+/// which is correct but slightly wasteful. This trade-off is acceptable since
+/// rebuild only runs when unions cause congruence (relatively rare).
 fn Database::rebuild_table(
   self : Database,
   name : String,
@@ -244,6 +258,11 @@ fn Database::rebuild_table(
 /// body uses semi-naive query execution so that each fixpoint iteration only
 /// processes newly derived rows.
 fn Database::register_incr_rule(self : Database, rule : Rule) -> Unit {
+  // Guard: skip if this rule was already registered.
+  if self.registered_rules.contains(rule.name) {
+    return
+  }
+  self.registered_rules[rule.name] = ()
   let input_ids : Array[@incr.CellId] = []
   for atom in rule.query {
     match atom {

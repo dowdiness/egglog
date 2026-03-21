@@ -115,15 +115,16 @@ fn unify_row(
 }
 
 ///|
-/// Execute a conjunctive query with a simple nested-loop join strategy.
+/// Core query execution with configurable row source per fact atom.
 ///
-/// `Fact` atoms contribute rows, while `Equal` atoms are evaluated only after
-/// the fact joins have produced candidate substitutions.
-fn execute_query(
+/// `row_source(table, atom_index)` returns the rows to join against.
+/// Full scan uses `table.scan()` for all atoms; semi-naive uses
+/// `table.delta_scan()` for the first atom and `table.scan()` for the rest.
+fn execute_query_with(
   db : Database,
   query : Array[Atom],
+  row_source : (FunctionTable, Int) -> Array[(Array[Value], Value)],
 ) -> Array[Map[String, Value]] {
-  // Separate row-producing atoms from post-filter equality checks.
   let facts : Array[(String, Array[Term])] = []
   let equals : Array[(Term, Term)] = []
   for atom in query {
@@ -132,22 +133,18 @@ fn execute_query(
       Equal(lhs, rhs) => equals.push((lhs, rhs))
     }
   }
-  // Start from the identity relation containing one empty environment.
   let mut substs : Array[Map[String, Value]] = [{}]
-  // Each fact performs a join against the current substitution frontier.
-  for fact in facts {
+  for i, fact in facts {
     let (name, terms) = fact
     let table = match db.tables.get(name) {
       Some(t) => t
       None => return []
     }
-    let rows = table.scan()
+    let rows = row_source(table, i)
     let new_substs : Array[Map[String, Value]] = []
     for s in substs {
       for row_pair in rows {
         let (key, value) = row_pair
-        // Tables store input columns separately from the output column, but
-        // query atoms talk about the whole functional row at once.
         let full_row : Array[Value] = key.copy()
         full_row.push(value)
         for extended in unify_row(db, s, terms, full_row) {
@@ -157,7 +154,6 @@ fn execute_query(
     }
     substs = new_substs
   }
-  // Equality atoms act like a WHERE clause over the joined substitutions.
   let result : Array[Map[String, Value]] = []
   for s in substs {
     let mut ok = true
@@ -179,64 +175,23 @@ fn execute_query(
 }
 
 ///|
+/// Execute a conjunctive query with full table scans.
+fn execute_query(
+  db : Database,
+  query : Array[Atom],
+) -> Array[Map[String, Value]] {
+  execute_query_with(db, query, fn(table, _i) { table.scan() })
+}
+
+///|
 /// Semi-naive query execution: reads delta_scan() for the first Fact atom
 /// (seed) and scan() for remaining atoms.
-///
-/// In semi-naive evaluation the "seed" relation contributes only rows that
-/// were newly derived in the previous iteration (the delta), while the
-/// remaining relations are joined against the full accumulated set.  This
-/// avoids re-deriving facts that were already produced in earlier rounds.
 #warnings("-unused_value")
 fn execute_query_semi_naive(
   db : Database,
   query : Array[Atom],
 ) -> Array[Map[String, Value]] {
-  let facts : Array[(String, Array[Term])] = []
-  let equals : Array[(Term, Term)] = []
-  for atom in query {
-    match atom {
-      Fact(name, terms) => facts.push((name, terms))
-      Equal(lhs, rhs) => equals.push((lhs, rhs))
-    }
-  }
-  let mut substs : Array[Map[String, Value]] = [{}]
-  for i, fact in facts {
-    let (name, terms) = fact
-    let table = match db.tables.get(name) {
-      Some(t) => t
-      None => return []
-    }
-    // First fact atom reads delta (new rows only); rest read all rows.
-    let rows = if i == 0 { table.delta_scan() } else { table.scan() }
-    let new_substs : Array[Map[String, Value]] = []
-    for s in substs {
-      for row_pair in rows {
-        let (key, value) = row_pair
-        let full_row : Array[Value] = key.copy()
-        full_row.push(value)
-        for extended in unify_row(db, s, terms, full_row) {
-          new_substs.push(extended)
-        }
-      }
-    }
-    substs = new_substs
-  }
-  let result : Array[Map[String, Value]] = []
-  for s in substs {
-    let mut ok = true
-    for eq in equals {
-      let (lhs, rhs) = eq
-      match (eval_term_opt(db, s, lhs), eval_term_opt(db, s, rhs)) {
-        (Some(lval), Some(rval)) =>
-          if db.canonicalize_value(lval) != db.canonicalize_value(rval) {
-            ok = false
-          }
-        _ => ok = false
-      }
-    }
-    if ok {
-      result.push(s)
-    }
-  }
-  result
+  execute_query_with(db, query, fn(table, i) {
+    if i == 0 { table.delta_scan() } else { table.scan() }
+  })
 }
