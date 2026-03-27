@@ -243,6 +243,51 @@ pub fn app_rules() -> Array[@egglog.Rule] {
 }
 
 ///|
+/// Let typing rules.
+///
+/// type-let-body: once val is typed, extend env and seed Typing for body.
+///   Uses LetAction to call ExtendEnv (hashconsed), creating the scope id.
+///
+/// type-let-return: once body is typed in the extended env, propagate to Let.
+///   Queries ExtendEnv as a Fact to reconstruct the ext_env id deterministically.
+pub fn let_rules() -> Array[@egglog.Rule] {
+  [
+    // type-let-body: Let(x, v, body, e), Typing(env, e), HasType(env, v)=tv
+    //   → let ext_env = ExtendEnv(env, x, tv)
+    //     Typing(ext_env, body)
+    //     InEnv(ext_env, x) = tv
+    {
+      name: "type-let-body",
+      query: [
+        @egglog.Fact("Let", [@egglog.Var("x"), @egglog.Var("v"), @egglog.Var("body"), @egglog.Var("e")]),
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("v"), @egglog.Var("tv")]),
+      ],
+      actions: [
+        @egglog.LetAction("ext_env", @egglog.Call("ExtendEnv", [@egglog.Var("env"), @egglog.Var("x"), @egglog.Var("tv")])),
+        @egglog.Set("Typing", [@egglog.Var("ext_env"), @egglog.Var("body")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set("InEnv", [@egglog.Var("ext_env"), @egglog.Var("x")], @egglog.Var("tv")),
+      ],
+    },
+    // type-let-return: Let(x, v, body, e), HasType(env, v)=tv,
+    //                  ExtendEnv(env, x, tv)=ext_env, HasType(ext_env, body)=ty
+    //   → HasType(env, e) = ty
+    {
+      name: "type-let-return",
+      query: [
+        @egglog.Fact("Let", [@egglog.Var("x"), @egglog.Var("v"), @egglog.Var("body"), @egglog.Var("e")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("v"), @egglog.Var("tv")]),
+        @egglog.Fact("ExtendEnv", [@egglog.Var("env"), @egglog.Var("x"), @egglog.Var("tv"), @egglog.Var("ext_env")]),
+        @egglog.Fact("HasType", [@egglog.Var("ext_env"), @egglog.Var("body"), @egglog.Var("ty")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Var("ty")),
+      ],
+    },
+  ]
+}
+
+///|
 /// Arithmetic and IsZero typing rules.
 pub fn arith_rules() -> Array[@egglog.Rule] {
   [

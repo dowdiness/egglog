@@ -175,3 +175,20 @@ test "app synthesizes return type from Arrow" {
   let result = db.lookup("HasType", [env, app_e])
   inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
 }
+
+///|
+test "let binding synthesizes body type" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  // let x = 42 in x + 1
+  let num_42 = db.call("Num", [@egglog.IntVal(42)])
+  let var_x = db.call("Var", [@egglog.StrVal("x")])
+  let num_1 = db.call("Num", [@egglog.IntVal(1)])
+  let body = db.call("Add", [var_x, num_1])
+  let let_e = db.call("Let", [@egglog.StrVal("x"), num_42, body])
+  let _ = db.set("Typing", [env, let_e], @egglog.IntVal(1))
+  run(db, [..propagation_rules(), ..atom_rules(), ..arith_rules(), ..let_rules()])
+  let int_ty = db.call("IntTy", [])
+  let result = db.lookup("HasType", [env, let_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
