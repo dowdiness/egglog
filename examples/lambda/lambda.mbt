@@ -224,6 +224,25 @@ pub fn if_rules() -> Array[@egglog.Rule] {
 }
 
 ///|
+/// App typing rule: f : (ta -> tb), a : ta → App(f, a) : tb
+pub fn app_rules() -> Array[@egglog.Rule] {
+  [
+    {
+      name: "type-app",
+      query: [
+        @egglog.Fact("App", [@egglog.Var("f"), @egglog.Var("a"), @egglog.Var("e")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("f"), @egglog.Var("arr")]),
+        @egglog.Fact("Arrow", [@egglog.Var("ta"), @egglog.Var("tb"), @egglog.Var("arr")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("a"), @egglog.Var("ta")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Var("tb")),
+      ],
+    },
+  ]
+}
+
+///|
 /// Arithmetic and IsZero typing rules.
 pub fn arith_rules() -> Array[@egglog.Rule] {
   [

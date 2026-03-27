@@ -158,3 +158,20 @@ test "if with mismatched branch types unions the type classes" {
   // int_ty and bool_ty are NOT merged (no union happened)
   inspect(db.find(unwrap_id(int_ty)) != db.find(unwrap_id(bool_ty)), content="true")
 }
+
+///|
+test "app synthesizes return type from Arrow" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let int_ty = db.call("IntTy", [])
+  let arr_ty = db.call("Arrow", [int_ty, int_ty])
+  // Build: f applied to 42, where f : Int -> Int
+  let f_e = db.call("Var", [@egglog.StrVal("f")])
+  let _ = db.set("InEnv", [env, @egglog.StrVal("f")], arr_ty)
+  let arg_e = db.call("Num", [@egglog.IntVal(42)])
+  let app_e = db.call("App", [f_e, arg_e])
+  let _ = db.set("Typing", [env, app_e], @egglog.IntVal(1))
+  run(db, [..propagation_rules(), ..atom_rules(), ..app_rules()])
+  let result = db.lookup("HasType", [env, app_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
