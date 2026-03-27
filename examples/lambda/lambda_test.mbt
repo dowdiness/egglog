@@ -84,6 +84,91 @@ test "unbound var produces no HasType" {
 }
 
 ///|
+test "var with no InEnv entry produces no HasType" {
+  // Exercises the failure path of type-var: Var("x") in a scope where
+  // no InEnv(env, "x") fact exists. Different from the Unbound constructor
+  // test above — this is a real Var node that type-var tries and fails to match.
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let var_e = db.call("Var", [@egglog.StrVal("x")])
+  let _ = db.set("Typing", [env, var_e], @egglog.IntVal(1))
+  run(db, atom_rules())
+  inspect(db.lookup("HasType", [env, var_e]) is None, content="true")
+}
+
+///|
+test "if: non-bool condition produces no HasType" {
+  // type-if requires HasType(env, cond) ∈ BoolTy — an Int condition cannot fire it.
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let n1 = db.call("Num", [@egglog.IntVal(1)])
+  let n2 = db.call("Num", [@egglog.IntVal(2)])
+  let n3 = db.call("Num", [@egglog.IntVal(3)])
+  let if_e = db.call("If", [n1, n2, n3])
+  let _ = db.set("Typing", [env, if_e], @egglog.IntVal(1))
+  run_arith_if(db)
+  inspect(db.lookup("HasType", [env, if_e]) is None, content="true")
+}
+
+///|
+test "add: non-int left operand produces no HasType" {
+  // type-add requires both operands to have IntTy; BoolTy on the left blocks it.
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let bt = db.call("BoolLit", [@egglog.IntVal(1)])
+  let n1 = db.call("Num", [@egglog.IntVal(1)])
+  let add_e = db.call("Add", [bt, n1])
+  let _ = db.set("Typing", [env, add_e], @egglog.IntVal(1))
+  run_arith(db)
+  inspect(db.lookup("HasType", [env, add_e]) is None, content="true")
+}
+
+///|
+test "app: non-arrow callee produces no HasType" {
+  // type-app requires HasType(env, f) ∈ Arrow — an IntTy callee cannot fire it.
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let int_ty = db.call("IntTy", [])
+  let f_e = db.call("Var", [@egglog.StrVal("f")])
+  let _ = db.set("InEnv", [env, @egglog.StrVal("f")], int_ty)
+  let arg_e = db.call("Num", [@egglog.IntVal(42)])
+  let app_e = db.call("App", [f_e, arg_e])
+  let _ = db.set("Typing", [env, app_e], @egglog.IntVal(1))
+  run(db, [..propagation_rules(), ..atom_rules(), ..app_rules()])
+  inspect(db.lookup("HasType", [env, app_e]) is None, content="true")
+}
+
+///|
+test "check-lam: codomain seeded enables nested lambda checking" {
+  // (λx. λy. x + y) : Int -> Int -> Int
+  // Requires fix: check-lam must seed HasType(ext_env, body) = b so the inner
+  // lambda gets its expected type automatically. LambdaEnv is used here for
+  // transitive InEnv seeding (outer var x visible in inner scope).
+  let db = lambda_db()
+  let int_ty = db.call("IntTy", [])
+  let inner_arr = db.call("Arrow", [int_ty, int_ty]) // Int -> Int
+  let outer_arr = db.call("Arrow", [int_ty, inner_arr]) // Int -> Int -> Int
+  let env0 = LambdaEnv::make(db)
+  let env_x = env0.extend(db, "x", int_ty)
+  let env_xy = env_x.extend(db, "y", int_ty)
+  let var_x = db.call("Var", [@egglog.StrVal("x")])
+  let var_y = db.call("Var", [@egglog.StrVal("y")])
+  let body = db.call("Add", [var_x, var_y])
+  let inner_lam = db.call("Lam", [@egglog.StrVal("y"), body])
+  let outer_lam = db.call("Lam", [@egglog.StrVal("x"), inner_lam])
+  let _ = db.set("Typing", [env0.id, outer_lam], @egglog.IntVal(1))
+  let _ = db.set("HasType", [env0.id, outer_lam], outer_arr)
+  run(
+    db,
+    [..propagation_rules(), ..atom_rules(), ..arith_rules(), ..lam_rules()],
+  )
+  // body (x + y) should have type Int in env_xy
+  let result = db.lookup("HasType", [env_xy.id, body])
+  inspect(result is Some(_), content="true")
+  inspect(same_class(db, result.unwrap(), int_ty), content="true")
+}
+
+///|
 fn run_arith(db : @egglog.Database) -> Unit {
   run(db, [..propagation_rules(), ..atom_rules(), ..arith_rules()])
 }

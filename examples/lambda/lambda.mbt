@@ -42,8 +42,16 @@ pub fn lambda_db() -> @egglog.Database {
 /// `InEnv(new_env, name) = ty` for **all** currently visible bindings —
 /// including those inherited from outer scopes. Inner bindings shadow outer
 /// ones because `Map` overwrite happens in MoonBit before seeding.
+///
+/// **Required for nested scopes:** The Datalog rules (`type-let-body`,
+/// `check-lam`) only seed `InEnv` for the directly introduced binding.
+/// For terms with multiple nested scopes (e.g. `let x=1 in let y=2 in x+y`),
+/// use `LambdaEnv::extend` to build environments — it copies all outer
+/// bindings transitively, so outer variables remain visible in inner scopes.
 pub struct LambdaEnv {
   id : @egglog.Value
+  // Internal state: mirrors InEnv facts seeded in the database.
+  // Not part of the stable API — use `extend` to update.
   bindings : Map[String, @egglog.Value]
 }
 
@@ -508,7 +516,8 @@ pub fn let_rules() -> Array[@egglog.Rule] {
 /// Lambda typing rules (bidirectional checking).
 ///
 /// check-lam: requires HasType(env, lam_e) = Arrow(a, b) to already exist.
-///   Seeds Typing and InEnv for the body in the extended environment.
+///   Seeds Typing, InEnv, and HasType(ext_env, body)=b for the body,
+///   propagating the expected codomain so nested lambdas can be checked.
 pub fn lam_rules() -> Array[@egglog.Rule] {
   [
     {
@@ -548,6 +557,13 @@ pub fn lam_rules() -> Array[@egglog.Rule] {
           "InEnv",
           [@egglog.Var("ext_env"), @egglog.Var("x")],
           @egglog.Var("a"),
+        ),
+        // Propagate expected codomain into the body so nested lambdas
+        // and checking rules can fire without external HasType seeds.
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("ext_env"), @egglog.Var("body")],
+          @egglog.Var("b"),
         ),
       ],
     },
