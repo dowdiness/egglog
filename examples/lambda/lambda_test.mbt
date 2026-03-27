@@ -73,3 +73,49 @@ test "unbound var produces no HasType" {
   run(db, atom_rules())
   inspect(db.lookup("HasType", [env, unbound_e]) is None, content="true")
 }
+
+///|
+fn run_all(db : @egglog.Database) -> Unit {
+  run(db, [..propagation_rules(), ..atom_rules(), ..arith_rules()])
+}
+
+///|
+test "add synthesizes IntTy" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let n1 = db.call("Num", [@egglog.IntVal(1)])
+  let n2 = db.call("Num", [@egglog.IntVal(2)])
+  let add_e = db.call("Add", [n1, n2])
+  let _ = db.set("Typing", [env, add_e], @egglog.IntVal(1))
+  run_all(db)
+  let int_ty = db.call("IntTy", [])
+  let result = db.lookup("HasType", [env, add_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
+
+///|
+test "minus synthesizes IntTy" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let n1 = db.call("Num", [@egglog.IntVal(5)])
+  let n2 = db.call("Num", [@egglog.IntVal(3)])
+  let sub_e = db.call("Minus", [n1, n2])
+  let _ = db.set("Typing", [env, sub_e], @egglog.IntVal(1))
+  run_all(db)
+  let int_ty = db.call("IntTy", [])
+  let result = db.lookup("HasType", [env, sub_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
+
+///|
+test "iszero synthesizes BoolTy" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let n = db.call("Num", [@egglog.IntVal(0)])
+  let iz_e = db.call("IsZero", [n])
+  let _ = db.set("Typing", [env, iz_e], @egglog.IntVal(1))
+  run_all(db)
+  let bool_ty = db.call("BoolTy", [])
+  let result = db.lookup("HasType", [env, iz_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(bool_ty)), content="true")
+}

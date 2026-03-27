@@ -202,3 +202,50 @@ pub fn atom_rules() -> Array[@egglog.Rule] {
     },
   ]
 }
+
+///|
+/// Arithmetic and IsZero typing rules.
+pub fn arith_rules() -> Array[@egglog.Rule] {
+  [
+    // type-add: Add(a, b, e), HasType(env, a)=IntTy, HasType(env, b)=IntTy → HasType(env, e)=IntTy
+    {
+      name: "type-add",
+      query: [
+        @egglog.Fact("Add", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("e")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("a"), @egglog.Var("ta")]),
+        @egglog.Fact("IntTy", [@egglog.Var("ta")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("b"), @egglog.Var("tb")]),
+        @egglog.Fact("IntTy", [@egglog.Var("tb")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("IntTy", [])),
+      ],
+    },
+    // type-minus: identical structure to type-add
+    {
+      name: "type-minus",
+      query: [
+        @egglog.Fact("Minus", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("e")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("a"), @egglog.Var("ta")]),
+        @egglog.Fact("IntTy", [@egglog.Var("ta")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("b"), @egglog.Var("tb")]),
+        @egglog.Fact("IntTy", [@egglog.Var("tb")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("IntTy", [])),
+      ],
+    },
+    // type-iszero: IsZero(inner, e), HasType(env, inner)=IntTy → HasType(env, e)=BoolTy
+    {
+      name: "type-iszero",
+      query: [
+        @egglog.Fact("IsZero", [@egglog.Var("inner"), @egglog.Var("e")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("inner"), @egglog.Var("ti")]),
+        @egglog.Fact("IntTy", [@egglog.Var("ti")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("BoolTy", [])),
+      ],
+    },
+  ]
+}
