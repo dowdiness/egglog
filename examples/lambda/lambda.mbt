@@ -71,3 +71,82 @@ pub fn LambdaEnv::extend(
   }
   { id: new_id, bindings: new_bindings }
 }
+
+///|
+/// Propagation rules: seed Typing(env, child) from a typed parent.
+/// These run before synthesis rules so env is always known when typing fires.
+pub fn propagation_rules() -> Array[@egglog.Rule] {
+  [
+    // propagate-add: Typing(env, e), Add(a, b, e) → Typing(env, a), Typing(env, b)
+    {
+      name: "propagate-add",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Add", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("a")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("b")], @egglog.Lit(@egglog.IntVal(1))),
+      ],
+    },
+    // propagate-minus
+    {
+      name: "propagate-minus",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Minus", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("a")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("b")], @egglog.Lit(@egglog.IntVal(1))),
+      ],
+    },
+    // propagate-iszero
+    {
+      name: "propagate-iszero",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("IsZero", [@egglog.Var("inner"), @egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("inner")], @egglog.Lit(@egglog.IntVal(1))),
+      ],
+    },
+    // propagate-if
+    {
+      name: "propagate-if",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("If", [@egglog.Var("c"), @egglog.Var("t"), @egglog.Var("f"), @egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("c")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("t")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("f")], @egglog.Lit(@egglog.IntVal(1))),
+      ],
+    },
+    // propagate-app
+    {
+      name: "propagate-app",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("App", [@egglog.Var("f"), @egglog.Var("a"), @egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("f")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("a")], @egglog.Lit(@egglog.IntVal(1))),
+      ],
+    },
+    // propagate-let-val: seed Typing for val so type-num/etc fire before type-let-body
+    {
+      name: "propagate-let-val",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Let", [@egglog.Var("x"), @egglog.Var("v"), @egglog.Var("body"), @egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("v")], @egglog.Lit(@egglog.IntVal(1))),
+      ],
+    },
+  ]
+}
