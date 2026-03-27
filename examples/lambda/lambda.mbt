@@ -81,71 +81,161 @@ pub fn propagation_rules() -> Array[@egglog.Rule] {
     {
       name: "propagate-add",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
-        @egglog.Fact("Add", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("e")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
+        @egglog.Fact("Add", [
+          @egglog.Var("a"),
+          @egglog.Var("b"),
+          @egglog.Var("e"),
+        ]),
       ],
       actions: [
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("a")], @egglog.Lit(@egglog.IntVal(1))),
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("b")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("a")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("b")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
       ],
     },
     // propagate-minus
     {
       name: "propagate-minus",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
-        @egglog.Fact("Minus", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("e")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
+        @egglog.Fact("Minus", [
+          @egglog.Var("a"),
+          @egglog.Var("b"),
+          @egglog.Var("e"),
+        ]),
       ],
       actions: [
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("a")], @egglog.Lit(@egglog.IntVal(1))),
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("b")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("a")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("b")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
       ],
     },
     // propagate-iszero
     {
       name: "propagate-iszero",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
         @egglog.Fact("IsZero", [@egglog.Var("inner"), @egglog.Var("e")]),
       ],
       actions: [
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("inner")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("inner")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
       ],
     },
     // propagate-if
     {
       name: "propagate-if",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
-        @egglog.Fact("If", [@egglog.Var("c"), @egglog.Var("t"), @egglog.Var("f"), @egglog.Var("e")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
+        @egglog.Fact("If", [
+          @egglog.Var("c"),
+          @egglog.Var("t"),
+          @egglog.Var("f"),
+          @egglog.Var("e"),
+        ]),
       ],
       actions: [
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("c")], @egglog.Lit(@egglog.IntVal(1))),
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("t")], @egglog.Lit(@egglog.IntVal(1))),
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("f")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("c")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("t")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("f")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
       ],
     },
     // propagate-app
     {
       name: "propagate-app",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
-        @egglog.Fact("App", [@egglog.Var("f"), @egglog.Var("a"), @egglog.Var("e")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
+        @egglog.Fact("App", [
+          @egglog.Var("f"),
+          @egglog.Var("a"),
+          @egglog.Var("e"),
+        ]),
       ],
       actions: [
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("f")], @egglog.Lit(@egglog.IntVal(1))),
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("a")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("f")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("a")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
       ],
     },
     // propagate-let-val: seed Typing for val so type-num/etc fire before type-let-body
     {
       name: "propagate-let-val",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
-        @egglog.Fact("Let", [@egglog.Var("x"), @egglog.Var("v"), @egglog.Var("body"), @egglog.Var("e")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
+        @egglog.Fact("Let", [
+          @egglog.Var("x"),
+          @egglog.Var("v"),
+          @egglog.Var("body"),
+          @egglog.Var("e"),
+        ]),
       ],
       actions: [
-        @egglog.Set("Typing", [@egglog.Var("env"), @egglog.Var("v")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("env"), @egglog.Var("v")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
       ],
     },
   ]
@@ -159,45 +249,81 @@ pub fn atom_rules() -> Array[@egglog.Rule] {
     {
       name: "type-num",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
         @egglog.Fact("Num", [@egglog.Var("n"), @egglog.Var("e")]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("IntTy", [])),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Call("IntTy", []),
+        ),
       ],
     },
     // type-bool
     {
       name: "type-bool",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
         @egglog.Fact("BoolLit", [@egglog.Var("b"), @egglog.Var("e")]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("BoolTy", [])),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Call("BoolTy", []),
+        ),
       ],
     },
     // type-unit
     {
       name: "type-unit",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
         @egglog.Fact("Unit", [@egglog.Var("e")]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("UnitTy", [])),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Call("UnitTy", []),
+        ),
       ],
     },
     // type-var
     {
       name: "type-var",
       query: [
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
         @egglog.Fact("Var", [@egglog.Var("x"), @egglog.Var("e")]),
-        @egglog.Fact("InEnv", [@egglog.Var("env"), @egglog.Var("x"), @egglog.Var("t")]),
+        @egglog.Fact("InEnv", [
+          @egglog.Var("env"),
+          @egglog.Var("x"),
+          @egglog.Var("t"),
+        ]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Var("t")),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Var("t"),
+        ),
       ],
     },
   ]
@@ -210,14 +336,35 @@ pub fn if_rules() -> Array[@egglog.Rule] {
     {
       name: "type-if",
       query: [
-        @egglog.Fact("If", [@egglog.Var("c"), @egglog.Var("t"), @egglog.Var("f"), @egglog.Var("e")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("c"), @egglog.Var("tc")]),
+        @egglog.Fact("If", [
+          @egglog.Var("c"),
+          @egglog.Var("t"),
+          @egglog.Var("f"),
+          @egglog.Var("e"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("c"),
+          @egglog.Var("tc"),
+        ]),
         @egglog.Fact("BoolTy", [@egglog.Var("tc")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("t"), @egglog.Var("ty")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("f"), @egglog.Var("ty")]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("t"),
+          @egglog.Var("ty"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("f"),
+          @egglog.Var("ty"),
+        ]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Var("ty")),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Var("ty"),
+        ),
       ],
     },
   ]
@@ -230,13 +377,33 @@ pub fn app_rules() -> Array[@egglog.Rule] {
     {
       name: "type-app",
       query: [
-        @egglog.Fact("App", [@egglog.Var("f"), @egglog.Var("a"), @egglog.Var("e")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("f"), @egglog.Var("arr")]),
-        @egglog.Fact("Arrow", [@egglog.Var("ta"), @egglog.Var("tb"), @egglog.Var("arr")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("a"), @egglog.Var("ta")]),
+        @egglog.Fact("App", [
+          @egglog.Var("f"),
+          @egglog.Var("a"),
+          @egglog.Var("e"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("f"),
+          @egglog.Var("arr"),
+        ]),
+        @egglog.Fact("Arrow", [
+          @egglog.Var("ta"),
+          @egglog.Var("tb"),
+          @egglog.Var("arr"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("a"),
+          @egglog.Var("ta"),
+        ]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Var("tb")),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Var("tb"),
+        ),
       ],
     },
   ]
@@ -259,14 +426,42 @@ pub fn let_rules() -> Array[@egglog.Rule] {
     {
       name: "type-let-body",
       query: [
-        @egglog.Fact("Let", [@egglog.Var("x"), @egglog.Var("v"), @egglog.Var("body"), @egglog.Var("e")]),
-        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("v"), @egglog.Var("tv")]),
+        @egglog.Fact("Let", [
+          @egglog.Var("x"),
+          @egglog.Var("v"),
+          @egglog.Var("body"),
+          @egglog.Var("e"),
+        ]),
+        @egglog.Fact("Typing", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("_"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("v"),
+          @egglog.Var("tv"),
+        ]),
       ],
       actions: [
-        @egglog.LetAction("ext_env", @egglog.Call("ExtendEnv", [@egglog.Var("env"), @egglog.Var("x"), @egglog.Var("tv")])),
-        @egglog.Set("Typing", [@egglog.Var("ext_env"), @egglog.Var("body")], @egglog.Lit(@egglog.IntVal(1))),
-        @egglog.Set("InEnv", [@egglog.Var("ext_env"), @egglog.Var("x")], @egglog.Var("tv")),
+        @egglog.LetAction(
+          "ext_env",
+          @egglog.Call("ExtendEnv", [
+            @egglog.Var("env"),
+            @egglog.Var("x"),
+            @egglog.Var("tv"),
+          ]),
+        ),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("ext_env"), @egglog.Var("body")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
+        @egglog.Set(
+          "InEnv",
+          [@egglog.Var("ext_env"), @egglog.Var("x")],
+          @egglog.Var("tv"),
+        ),
       ],
     },
     // type-let-return: Let(x, v, body, e), HasType(env, v)=tv,
@@ -275,13 +470,35 @@ pub fn let_rules() -> Array[@egglog.Rule] {
     {
       name: "type-let-return",
       query: [
-        @egglog.Fact("Let", [@egglog.Var("x"), @egglog.Var("v"), @egglog.Var("body"), @egglog.Var("e")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("v"), @egglog.Var("tv")]),
-        @egglog.Fact("ExtendEnv", [@egglog.Var("env"), @egglog.Var("x"), @egglog.Var("tv"), @egglog.Var("ext_env")]),
-        @egglog.Fact("HasType", [@egglog.Var("ext_env"), @egglog.Var("body"), @egglog.Var("ty")]),
+        @egglog.Fact("Let", [
+          @egglog.Var("x"),
+          @egglog.Var("v"),
+          @egglog.Var("body"),
+          @egglog.Var("e"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("v"),
+          @egglog.Var("tv"),
+        ]),
+        @egglog.Fact("ExtendEnv", [
+          @egglog.Var("env"),
+          @egglog.Var("x"),
+          @egglog.Var("tv"),
+          @egglog.Var("ext_env"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("ext_env"),
+          @egglog.Var("body"),
+          @egglog.Var("ty"),
+        ]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Var("ty")),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Var("ty"),
+        ),
       ],
     },
   ]
@@ -297,14 +514,41 @@ pub fn lam_rules() -> Array[@egglog.Rule] {
     {
       name: "check-lam",
       query: [
-        @egglog.Fact("Lam", [@egglog.Var("x"), @egglog.Var("body"), @egglog.Var("e")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("arr")]),
-        @egglog.Fact("Arrow", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("arr")]),
+        @egglog.Fact("Lam", [
+          @egglog.Var("x"),
+          @egglog.Var("body"),
+          @egglog.Var("e"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("e"),
+          @egglog.Var("arr"),
+        ]),
+        @egglog.Fact("Arrow", [
+          @egglog.Var("a"),
+          @egglog.Var("b"),
+          @egglog.Var("arr"),
+        ]),
       ],
       actions: [
-        @egglog.LetAction("ext_env", @egglog.Call("ExtendEnv", [@egglog.Var("env"), @egglog.Var("x"), @egglog.Var("a")])),
-        @egglog.Set("Typing", [@egglog.Var("ext_env"), @egglog.Var("body")], @egglog.Lit(@egglog.IntVal(1))),
-        @egglog.Set("InEnv", [@egglog.Var("ext_env"), @egglog.Var("x")], @egglog.Var("a")),
+        @egglog.LetAction(
+          "ext_env",
+          @egglog.Call("ExtendEnv", [
+            @egglog.Var("env"),
+            @egglog.Var("x"),
+            @egglog.Var("a"),
+          ]),
+        ),
+        @egglog.Set(
+          "Typing",
+          [@egglog.Var("ext_env"), @egglog.Var("body")],
+          @egglog.Lit(@egglog.IntVal(1)),
+        ),
+        @egglog.Set(
+          "InEnv",
+          [@egglog.Var("ext_env"), @egglog.Var("x")],
+          @egglog.Var("a"),
+        ),
       ],
     },
   ]
@@ -332,28 +576,60 @@ pub fn arith_rules() -> Array[@egglog.Rule] {
     {
       name: "type-add",
       query: [
-        @egglog.Fact("Add", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("e")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("a"), @egglog.Var("ta")]),
+        @egglog.Fact("Add", [
+          @egglog.Var("a"),
+          @egglog.Var("b"),
+          @egglog.Var("e"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("a"),
+          @egglog.Var("ta"),
+        ]),
         @egglog.Fact("IntTy", [@egglog.Var("ta")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("b"), @egglog.Var("tb")]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("b"),
+          @egglog.Var("tb"),
+        ]),
         @egglog.Fact("IntTy", [@egglog.Var("tb")]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("IntTy", [])),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Call("IntTy", []),
+        ),
       ],
     },
     // type-minus: identical structure to type-add
     {
       name: "type-minus",
       query: [
-        @egglog.Fact("Minus", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("e")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("a"), @egglog.Var("ta")]),
+        @egglog.Fact("Minus", [
+          @egglog.Var("a"),
+          @egglog.Var("b"),
+          @egglog.Var("e"),
+        ]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("a"),
+          @egglog.Var("ta"),
+        ]),
         @egglog.Fact("IntTy", [@egglog.Var("ta")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("b"), @egglog.Var("tb")]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("b"),
+          @egglog.Var("tb"),
+        ]),
         @egglog.Fact("IntTy", [@egglog.Var("tb")]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("IntTy", [])),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Call("IntTy", []),
+        ),
       ],
     },
     // type-iszero: IsZero(inner, e), HasType(env, inner)=IntTy → HasType(env, e)=BoolTy
@@ -361,11 +637,19 @@ pub fn arith_rules() -> Array[@egglog.Rule] {
       name: "type-iszero",
       query: [
         @egglog.Fact("IsZero", [@egglog.Var("inner"), @egglog.Var("e")]),
-        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("inner"), @egglog.Var("ti")]),
+        @egglog.Fact("HasType", [
+          @egglog.Var("env"),
+          @egglog.Var("inner"),
+          @egglog.Var("ti"),
+        ]),
         @egglog.Fact("IntTy", [@egglog.Var("ti")]),
       ],
       actions: [
-        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("BoolTy", [])),
+        @egglog.Set(
+          "HasType",
+          [@egglog.Var("env"), @egglog.Var("e")],
+          @egglog.Call("BoolTy", []),
+        ),
       ],
     },
   ]
