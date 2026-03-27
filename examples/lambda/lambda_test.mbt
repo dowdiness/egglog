@@ -80,6 +80,11 @@ fn run_all(db : @egglog.Database) -> Unit {
 }
 
 ///|
+fn run_full(db : @egglog.Database) -> Unit {
+  run(db, [..propagation_rules(), ..atom_rules(), ..arith_rules(), ..if_rules()])
+}
+
+///|
 test "add synthesizes IntTy" {
   let db = lambda_db()
   let env = db.call("EmptyEnv", [])
@@ -118,4 +123,38 @@ test "iszero synthesizes BoolTy" {
   let bool_ty = db.call("BoolTy", [])
   let result = db.lookup("HasType", [env, iz_e])
   inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(bool_ty)), content="true")
+}
+
+///|
+test "if with matching branch types synthesizes branch type" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let cond = db.call("BoolLit", [@egglog.IntVal(1)])
+  let t = db.call("Num", [@egglog.IntVal(1)])
+  let f = db.call("Num", [@egglog.IntVal(2)])
+  let if_e = db.call("If", [cond, t, f])
+  let _ = db.set("Typing", [env, if_e], @egglog.IntVal(1))
+  run_full(db)
+  let int_ty = db.call("IntTy", [])
+  let result = db.lookup("HasType", [env, if_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
+
+///|
+test "if with mismatched branch types unions the type classes" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let cond = db.call("BoolLit", [@egglog.IntVal(1)])
+  let t = db.call("Num", [@egglog.IntVal(1)])      // IntTy
+  let f = db.call("BoolLit", [@egglog.IntVal(0)])  // BoolTy
+  let if_e = db.call("If", [cond, t, f])
+  let _ = db.set("Typing", [env, if_e], @egglog.IntVal(1))
+  run_full(db)
+  let int_ty = db.call("IntTy", [])
+  let bool_ty = db.call("BoolTy", [])
+  // Both branches typed, but no shared type → HasType is not set
+  // (type-if requires both branches to have the SAME type class)
+  inspect(db.lookup("HasType", [env, if_e]) is None, content="true")
+  // int_ty and bool_ty are NOT merged (no union happened)
+  inspect(db.find(unwrap_id(int_ty)) != db.find(unwrap_id(bool_ty)), content="true")
 }

@@ -204,6 +204,26 @@ pub fn atom_rules() -> Array[@egglog.Rule] {
 }
 
 ///|
+/// If typing rule: condition must be BoolTy, both branches must share type.
+pub fn if_rules() -> Array[@egglog.Rule] {
+  [
+    {
+      name: "type-if",
+      query: [
+        @egglog.Fact("If", [@egglog.Var("c"), @egglog.Var("t"), @egglog.Var("f"), @egglog.Var("e")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("c"), @egglog.Var("tc")]),
+        @egglog.Fact("BoolTy", [@egglog.Var("tc")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("t"), @egglog.Var("ty")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("f"), @egglog.Var("ty")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Var("ty")),
+      ],
+    },
+  ]
+}
+
+///|
 /// Arithmetic and IsZero typing rules.
 pub fn arith_rules() -> Array[@egglog.Rule] {
   [
