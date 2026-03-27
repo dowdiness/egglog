@@ -311,6 +311,20 @@ pub fn lam_rules() -> Array[@egglog.Rule] {
 }
 
 ///|
+/// All lambda typing rules combined.
+pub fn all_rules() -> Array[@egglog.Rule] {
+  [
+    ..propagation_rules(),
+    ..atom_rules(),
+    ..arith_rules(),
+    ..if_rules(),
+    ..app_rules(),
+    ..let_rules(),
+    ..lam_rules(),
+  ]
+}
+
+///|
 /// Arithmetic and IsZero typing rules.
 pub fn arith_rules() -> Array[@egglog.Rule] {
   [

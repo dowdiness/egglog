@@ -212,3 +212,76 @@ test "check-lam: lambda body typed in extended env" {
   let result = db.lookup("HasType", [ext_env, body])
   inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
 }
+
+///|
+test "let shadowing: inner x shadows outer x" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  // let x = 1 in let x = true in x
+  // outer x : Int, inner x : Bool → result should be BoolTy
+  let num_1 = db.call("Num", [@egglog.IntVal(1)])
+  let bool_true = db.call("BoolLit", [@egglog.IntVal(1)])
+  let var_x = db.call("Var", [@egglog.StrVal("x")])
+  let inner_let = db.call("Let", [@egglog.StrVal("x"), bool_true, var_x])
+  let outer_let = db.call("Let", [@egglog.StrVal("x"), num_1, inner_let])
+  let _ = db.set("Typing", [env, outer_let], @egglog.IntVal(1))
+  let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(all_rules()), 30))
+  let bool_ty = db.call("BoolTy", [])
+  let int_ty = db.call("IntTy", [])
+  let result = db.lookup("HasType", [env, outer_let])
+  // inner x is BoolTy, so outer_let : BoolTy
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(bool_ty)), content="true")
+  // IntTy and BoolTy are NOT unioned (no type error occurred)
+  inspect(db.find(unwrap_id(int_ty)) != db.find(unwrap_id(bool_ty)), content="true")
+}
+
+///|
+test "app + lam full round-trip" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let int_ty = db.call("IntTy", [])
+  let arr_ty = db.call("Arrow", [int_ty, int_ty])
+  // (λx. x + 1) 42
+  let var_x = db.call("Var", [@egglog.StrVal("x")])
+  let num_1 = db.call("Num", [@egglog.IntVal(1)])
+  let body = db.call("Add", [var_x, num_1])
+  let lam_e = db.call("Lam", [@egglog.StrVal("x"), body])
+  let num_42 = db.call("Num", [@egglog.IntVal(42)])
+  let app_e = db.call("App", [lam_e, num_42])
+  let _ = db.set("Typing", [env, app_e], @egglog.IntVal(1))
+  let _ = db.set("HasType", [env, lam_e], arr_ty)  // seed lam type
+  let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(all_rules()), 30))
+  let result = db.lookup("HasType", [env, app_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
+
+///|
+test "LambdaEnv inherited bindings: let x=1 in let y=2 in x+y" {
+  // Exercises LambdaEnv::extend transitive seeding.
+  // When typing the body `x+y` in env2 (x:Int, y:Int), both x and y must be
+  // visible. LambdaEnv::extend copies ALL outer bindings into the new env,
+  // so InEnv(env2, "x") = IntTy is seeded even though only y is the new binding.
+  // Without transitive seeding, the `type-var` rule for x would find no InEnv
+  // entry in env2 and x+y would not type-check.
+  let db = lambda_db()
+  let int_ty = db.call("IntTy", [])
+  let env0 = LambdaEnv::make(db)
+  // env1 = {x: IntTy}
+  let env1 = env0.extend(db, "x", int_ty)
+  // env2 = {x: IntTy, y: IntTy}  (transitive: x is inherited from env1)
+  let env2 = env1.extend(db, "y", int_ty)
+  // Build: let x = 1 in let y = 2 in x + y
+  let num_1  = db.call("Num", [@egglog.IntVal(1)])
+  let num_2  = db.call("Num", [@egglog.IntVal(2)])
+  let var_x  = db.call("Var", [@egglog.StrVal("x")])
+  let var_y  = db.call("Var", [@egglog.StrVal("y")])
+  let body   = db.call("Add", [var_x, var_y])
+  // Seed Typing for each sub-expression in the appropriate env
+  let _ = db.set("Typing", [env2.id, body], @egglog.IntVal(1))
+  let _ = db.set("Typing", [env1.id, num_2], @egglog.IntVal(1))
+  let _ = db.set("Typing", [env0.id, num_1], @egglog.IntVal(1))
+  let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(all_rules()), 30))
+  // body (x + y) : Int in env2 — requires both x and y visible via InEnv
+  let result = db.lookup("HasType", [env2.id, body])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
