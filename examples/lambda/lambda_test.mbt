@@ -1,0 +1,75 @@
+///|
+fn run(db : @egglog.Database, rules : Array[@egglog.Rule]) -> Unit {
+  let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(rules), 20))
+
+}
+
+///|
+/// Extract the Id out of an @egglog.IdVal. Aborts on other variants.
+/// Used throughout tests because db.lookup/db.call return @egglog.Value.
+fn unwrap_id(v : @egglog.Value) -> @egglog.Id {
+  match v {
+    @egglog.IdVal(id) => id
+    _ => abort("expected IdVal")
+  }
+}
+
+///|
+test "num synthesizes IntTy" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let num_e = db.call("Num", [@egglog.IntVal(42)])
+  let _ = db.set("Typing", [env, num_e], @egglog.IntVal(1))
+  run(db, atom_rules())
+  let int_ty = db.call("IntTy", [])
+  let result = db.lookup("HasType", [env, num_e])
+  inspect(result is Some(_), content="true")
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
+
+///|
+test "boollit synthesizes BoolTy" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let b_e = db.call("BoolLit", [@egglog.IntVal(1)])
+  let _ = db.set("Typing", [env, b_e], @egglog.IntVal(1))
+  run(db, atom_rules())
+  let bool_ty = db.call("BoolTy", [])
+  let result = db.lookup("HasType", [env, b_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(bool_ty)), content="true")
+}
+
+///|
+test "unit synthesizes UnitTy" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let unit_e = db.call("Unit", [])
+  let _ = db.set("Typing", [env, unit_e], @egglog.IntVal(1))
+  run(db, atom_rules())
+  let unit_ty = db.call("UnitTy", [])
+  let result = db.lookup("HasType", [env, unit_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(unit_ty)), content="true")
+}
+
+///|
+test "var with InEnv synthesizes type" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let int_ty = db.call("IntTy", [])
+  let _ = db.set("InEnv", [env, @egglog.StrVal("x")], int_ty)
+  let var_e = db.call("Var", [@egglog.StrVal("x")])
+  let _ = db.set("Typing", [env, var_e], @egglog.IntVal(1))
+  run(db, atom_rules())
+  let result = db.lookup("HasType", [env, var_e])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}
+
+///|
+test "unbound var produces no HasType" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let unbound_e = db.call("Unbound", [@egglog.StrVal("x")])
+  let _ = db.set("Typing", [env, unbound_e], @egglog.IntVal(1))
+  run(db, atom_rules())
+  inspect(db.lookup("HasType", [env, unbound_e]) is None, content="true")
+}

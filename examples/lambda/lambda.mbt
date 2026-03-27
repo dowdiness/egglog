@@ -150,3 +150,55 @@ pub fn propagation_rules() -> Array[@egglog.Rule] {
     },
   ]
 }
+
+///|
+/// Atom typing rules: Num, BoolLit, Unit, Var.
+pub fn atom_rules() -> Array[@egglog.Rule] {
+  [
+    // type-num
+    {
+      name: "type-num",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Num", [@egglog.Var("n"), @egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("IntTy", [])),
+      ],
+    },
+    // type-bool
+    {
+      name: "type-bool",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("BoolLit", [@egglog.Var("b"), @egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("BoolTy", [])),
+      ],
+    },
+    // type-unit
+    {
+      name: "type-unit",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Unit", [@egglog.Var("e")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Call("UnitTy", [])),
+      ],
+    },
+    // type-var
+    {
+      name: "type-var",
+      query: [
+        @egglog.Fact("Typing", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("_")]),
+        @egglog.Fact("Var", [@egglog.Var("x"), @egglog.Var("e")]),
+        @egglog.Fact("InEnv", [@egglog.Var("env"), @egglog.Var("x"), @egglog.Var("t")]),
+      ],
+      actions: [
+        @egglog.Set("HasType", [@egglog.Var("env"), @egglog.Var("e")], @egglog.Var("t")),
+      ],
+    },
+  ]
+}
