@@ -192,3 +192,23 @@ test "let binding synthesizes body type" {
   let result = db.lookup("HasType", [env, let_e])
   inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
 }
+
+///|
+test "check-lam: lambda body typed in extended env" {
+  let db = lambda_db()
+  let env = db.call("EmptyEnv", [])
+  let int_ty = db.call("IntTy", [])
+  let arr_ty = db.call("Arrow", [int_ty, int_ty])
+  // λx. x + 1, seeded with expected type Int -> Int
+  let var_x = db.call("Var", [@egglog.StrVal("x")])
+  let num_1 = db.call("Num", [@egglog.IntVal(1)])
+  let body = db.call("Add", [var_x, num_1])
+  let lam_e = db.call("Lam", [@egglog.StrVal("x"), body])
+  let _ = db.set("Typing", [env, lam_e], @egglog.IntVal(1))
+  let _ = db.set("HasType", [env, lam_e], arr_ty)  // seed expected type
+  run(db, [..propagation_rules(), ..atom_rules(), ..arith_rules(), ..lam_rules()])
+  // body should be typed as Int in the extended env
+  let ext_env = db.call("ExtendEnv", [env, @egglog.StrVal("x"), int_ty])
+  let result = db.lookup("HasType", [ext_env, body])
+  inspect(db.find(unwrap_id(result.unwrap())) == db.find(unwrap_id(int_ty)), content="true")
+}

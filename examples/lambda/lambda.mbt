@@ -288,6 +288,29 @@ pub fn let_rules() -> Array[@egglog.Rule] {
 }
 
 ///|
+/// Lambda typing rules (bidirectional checking).
+///
+/// check-lam: requires HasType(env, lam_e) = Arrow(a, b) to already exist.
+///   Seeds Typing and InEnv for the body in the extended environment.
+pub fn lam_rules() -> Array[@egglog.Rule] {
+  [
+    {
+      name: "check-lam",
+      query: [
+        @egglog.Fact("Lam", [@egglog.Var("x"), @egglog.Var("body"), @egglog.Var("e")]),
+        @egglog.Fact("HasType", [@egglog.Var("env"), @egglog.Var("e"), @egglog.Var("arr")]),
+        @egglog.Fact("Arrow", [@egglog.Var("a"), @egglog.Var("b"), @egglog.Var("arr")]),
+      ],
+      actions: [
+        @egglog.LetAction("ext_env", @egglog.Call("ExtendEnv", [@egglog.Var("env"), @egglog.Var("x"), @egglog.Var("a")])),
+        @egglog.Set("Typing", [@egglog.Var("ext_env"), @egglog.Var("body")], @egglog.Lit(@egglog.IntVal(1))),
+        @egglog.Set("InEnv", [@egglog.Var("ext_env"), @egglog.Var("x")], @egglog.Var("a")),
+      ],
+    },
+  ]
+}
+
+///|
 /// Arithmetic and IsZero typing rules.
 pub fn arith_rules() -> Array[@egglog.Rule] {
   [
