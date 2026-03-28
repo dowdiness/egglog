@@ -1,5 +1,7 @@
 # Egglog Implementation Plan
 
+**Status: Complete** — all 10 tasks done, 68+26 tests passing.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build a relational e-graph engine (`dowdiness/egglog`) with bidirectional type inference for STLC as the first demonstration.

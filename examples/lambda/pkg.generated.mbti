@@ -1,0 +1,40 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "dowdiness/egglog/examples/lambda"
+
+import {
+  "dowdiness/egglog/src",
+}
+
+// Values
+pub fn all_rules() -> Array[@src.Rule]
+
+pub fn app_rules() -> Array[@src.Rule]
+
+pub fn arith_rules() -> Array[@src.Rule]
+
+pub fn atom_rules() -> Array[@src.Rule]
+
+pub fn if_rules() -> Array[@src.Rule]
+
+pub fn lam_rules() -> Array[@src.Rule]
+
+pub fn lambda_db() -> @src.Database
+
+pub fn let_rules() -> Array[@src.Rule]
+
+pub fn propagation_rules() -> Array[@src.Rule]
+
+// Errors
+
+// Types and methods
+pub struct LambdaEnv {
+  id : @src.Value
+  bindings : Map[String, @src.Value]
+}
+pub fn LambdaEnv::extend(Self, @src.Database, String, @src.Value) -> Self
+pub fn LambdaEnv::make(@src.Database) -> Self
+
+// Type aliases
+
+// Traits
+

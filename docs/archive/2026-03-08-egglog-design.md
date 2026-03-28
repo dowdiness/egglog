@@ -1,7 +1,7 @@
 # Egglog Design Proposal
 
 **Date:** 2026-03-08
-**Status:** Draft
+**Status:** Complete
 **Module:** `dowdiness/egglog`
 
 ## Goal
