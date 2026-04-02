@@ -15,16 +15,12 @@ pub(all) enum Action {
   Union(Term, Term)
   Set(String, Array[Term], Term)
   LetAction(String, Term)
-}
-pub impl Show for Action
-pub impl @debug.Debug for Action
+} derive(Show, @debug.Debug)
 
 pub(all) enum Atom {
   Fact(String, Array[Term])
   Equal(Term, Term)
-}
-pub impl Show for Atom
-pub impl @debug.Debug for Atom
+} derive(Show, @debug.Debug)
 
 pub struct Database {
   // private fields
@@ -38,86 +34,63 @@ pub fn Database::lookup(Self, String, Array[Value]) -> Value?
 pub fn Database::new() -> Self
 pub fn Database::rebuild(Self) -> Unit
 pub fn Database::register(Self, String, merge? : ((Value, Value) -> Value)?) -> Unit
+pub fn Database::row_count(Self, String) -> Int
 pub fn Database::run_schedule(Self, Schedule) -> StopReason
+pub fn Database::scan(Self, String) -> Array[(Array[Value], Value)]
 pub fn Database::set(Self, String, Array[Value], Value) -> Value
 pub fn Database::union(Self, Id, Id) -> Unit
 
 pub(all) enum ExtractedArg {
   Expr(ExtractedExpr)
   Primitive(Value)
-}
+} derive(@debug.Debug)
 pub impl Show for ExtractedArg
-pub impl @debug.Debug for ExtractedArg
 
 pub(all) struct ExtractedExpr {
   func_name : String
   args : Array[ExtractedArg]
-}
+} derive(@debug.Debug)
 pub impl Show for ExtractedExpr
-pub impl @debug.Debug for ExtractedExpr
 
-pub(all) struct Id(Int)
+pub(all) struct Id(Int) derive(Compare, Eq, Hash, @debug.Debug)
 #deprecated
 pub fn Id::inner(Self) -> Int
-pub impl Compare for Id
-pub impl Eq for Id
-pub impl Hash for Id
 pub impl Show for Id
-pub impl @debug.Debug for Id
 
 pub(all) struct Rule {
   name : String
   query : Array[Atom]
   actions : Array[Action]
-}
-pub impl Show for Rule
-pub impl @debug.Debug for Rule
+} derive(Show, @debug.Debug)
 
 pub(all) enum Schedule {
   Run(Array[Rule])
   Saturate(Schedule, Int)
   Repeat(Int, Schedule)
   Seq(Array[Schedule])
-}
-pub impl Show for Schedule
-pub impl @debug.Debug for Schedule
+} derive(Show, @debug.Debug)
 
 pub(all) enum Sort {
   EqSort(String)
   PrimitiveSort(String)
-}
-pub impl Eq for Sort
-pub impl Hash for Sort
-pub impl Show for Sort
-pub impl @debug.Debug for Sort
+} derive(Eq, Hash, Show, @debug.Debug)
 
 pub(all) enum StopReason {
   Saturated
   IterLimit
-}
-pub impl Eq for StopReason
-pub impl Show for StopReason
-pub impl @debug.Debug for StopReason
+} derive(Eq, Show, @debug.Debug)
 
 pub(all) enum Term {
   Var(String)
   Lit(Value)
   Call(String, Array[Term])
-}
-pub impl Eq for Term
-pub impl Show for Term
-pub impl @debug.Debug for Term
+} derive(Eq, Show, @debug.Debug)
 
 pub(all) enum Value {
   IdVal(Id)
   IntVal(Int)
   StrVal(String)
-}
-pub impl Compare for Value
-pub impl Eq for Value
-pub impl Hash for Value
-pub impl Show for Value
-pub impl @debug.Debug for Value
+} derive(Compare, Eq, Hash, Show, @debug.Debug)
 
 // Type aliases
 

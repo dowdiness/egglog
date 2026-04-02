@@ -410,6 +410,38 @@ fn Database::register_schedule_rules(
 }
 
 ///|
+/// Returns every row as `(key_tuple, value)`.
+///
+/// The internal store serializes keys as strings for O(log n) lookup; `scan`
+/// recovers the original `Array[Value]` tuples via a parallel `raw_keys` map.
+/// Reads from the authoritative store, not the delta buffer — returns all
+/// materialized rows regardless of fixpoint state.
+///
+/// Keys and values are returned as stored; after `union` + `rebuild`, callers
+/// should canonicalize `IdVal`s via `find()` before using them as lookup keys.
+///
+/// Aborts if the table has not been registered via `register()`.
+pub fn Database::scan(
+  self : Database,
+  name : String,
+) -> Array[(Array[Value], Value)] {
+  let table = self.get_table(name)
+  table.scan()
+}
+
+///|
+/// Number of distinct canonical key tuples in a table.
+///
+/// Because egglog tables are functional (at most one output per canonical key),
+/// this equals the number of distinct function applications materialized so far.
+///
+/// Aborts if the table has not been registered via `register()`.
+pub fn Database::row_count(self : Database, name : String) -> Int {
+  let table = self.get_table(name)
+  table.row_count()
+}
+
+///|
 /// Look up a row after canonicalizing the arguments first.
 ///
 /// This gives callers the logical answer for the current e-graph state rather
