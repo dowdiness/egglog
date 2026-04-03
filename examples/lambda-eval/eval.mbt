@@ -617,6 +617,54 @@ fn unwrap_id(v : @egglog.Value) -> @egglog.Id {
 }
 
 ///|
+/// Reconstruct a ValueEnv from existing ValEnv facts in the database.
+///
+/// Used when the bridge encounters an env id not tracked in env_map —
+/// e.g., closure envs created outside run_eval, or envs whose canonical
+/// id changed after rebuild(). Scans the ValEnv table for all bindings
+/// associated with the given env id.
+fn reconstruct_val_env(
+  db : @egglog.Database,
+  env_val : @egglog.Value,
+) -> ValueEnv {
+  let env_id = db.find(unwrap_id(env_val))
+  let bindings : Map[String, @egglog.Value] = {}
+  for row in db.scan("ValEnv") {
+    let (args, result) = row
+    if db.find(unwrap_id(args[0])) == env_id {
+      match args[1] {
+        @egglog.StrVal(name) => bindings[name] = result
+        _ => ()
+      }
+    }
+  }
+  { id: env_val, bindings }
+}
+
+///|
+/// Look up or reconstruct the ValueEnv for a given env id.
+///
+/// First checks env_map by canonical id. If not found, reconstructs
+/// from ValEnv facts in the database. This handles two cases:
+/// 1. Environments created outside run_eval (externally seeded ValEnv)
+/// 2. Environments whose canonical id changed after rebuild()
+fn get_or_reconstruct_env(
+  db : @egglog.Database,
+  env_val : @egglog.Value,
+  env_map : Map[@egglog.Id, ValueEnv],
+) -> ValueEnv {
+  let env_id = db.find(unwrap_id(env_val))
+  match env_map.get(env_id) {
+    Some(ve) => ve
+    None => {
+      let ve = reconstruct_val_env(db, env_val)
+      env_map[env_id] = ve
+      ve
+    }
+  }
+}
+
+///|
 /// Create an extended value environment for a closure application or let binding.
 fn create_eval_env(
   val_env : ValueEnv,
@@ -871,17 +919,8 @@ fn process_app_ready(
             let clos_info = extract_closure(db, clos)
             match clos_info {
               Some((clos_env, x_name, body)) => {
-                // Find or create ValueEnv for closure env
-                let clos_env_id = db.find(unwrap_id(clos_env))
-                let val_env = match env_map.get(clos_env_id) {
-                  Some(ve) => ve
-                  None => {
-                    // Closure captured an env we haven't tracked — create a minimal ValueEnv
-                    let ve : ValueEnv = { id: clos_env, bindings: {} }
-                    env_map[clos_env_id] = ve
-                    ve
-                  }
-                }
+                // Find or reconstruct ValueEnv for closure env
+                let val_env = get_or_reconstruct_env(db, clos_env, env_map)
                 let ext = create_eval_env(val_env, db, x_name, av)
                 let ext_id = db.find(unwrap_id(ext.id))
                 env_map[ext_id] = ext
@@ -938,15 +977,7 @@ fn process_let_ready(
         match val_result {
           None => continue
           Some(val_result) => {
-            let env_id = db.find(unwrap_id(env))
-            let val_env = match env_map.get(env_id) {
-              Some(ve) => ve
-              None => {
-                let ve : ValueEnv = { id: env, bindings: {} }
-                env_map[env_id] = ve
-                ve
-              }
-            }
+            let val_env = get_or_reconstruct_env(db, env, env_map)
             let ext = create_eval_env(val_env, db, x_name, val_result)
             let ext_id = db.find(unwrap_id(ext.id))
             env_map[ext_id] = ext
@@ -1059,15 +1090,10 @@ pub fn run_eval(
   rules : Array[@egglog.Rule],
   max_iters? : Int = 100,
 ) -> @egglog.Value? {
-  let val_env = ValueEnv::make(db)
+  // env_map caches host-side ValueEnv structs for tracked environments.
+  // Untracked envs (externally seeded or stale after rebuild) are
+  // reconstructed from ValEnv facts by get_or_reconstruct_env().
   let env_map : Map[@egglog.Id, ValueEnv] = {}
-  env_map[db.find(unwrap_id(val_env.id))] = val_env
-  // If the caller passed a specific env_id that differs from the fresh one,
-  // also register it (may happen in composition tests)
-  let caller_env_id = db.find(unwrap_id(env_id))
-  if !env_map.contains(caller_env_id) {
-    env_map[caller_env_id] = { id: env_id, bindings: {} }
-  }
   let _ = db.set("Demand", [env_id, expr_id], @egglog.IntVal(1))
   let processed : Map[String, Map[TriggerKey, Bool]] = {}
   for i = 0; i < max_iters; i = i + 1 {

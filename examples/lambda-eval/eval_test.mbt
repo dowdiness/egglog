@@ -391,3 +391,55 @@ test "composition: type and eval in same db" {
   let eval_int = db.call("ValInt", [@egglog.IntVal(6)])
   inspect(!same_class(db, eval_int, int_ty), content="true")
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// Review fixes: externally seeded env, shadowing, unbound var
+// ═══════════════════════════════════════════════════════════════════
+
+///|
+test "eval externally seeded env + closure capture" {
+  // Pre-seed ValEnv(env, "x") = 10 outside run_eval, then evaluate
+  // (lambda y. x + y) 5 in that env. The bridge must reconstruct
+  // the host-side bindings from ValEnv facts, not assume empty.
+  let db = lambda_eval_db()
+  let val_env = ValueEnv::make(db)
+  let val_10 = db.call("ValInt", [@egglog.IntVal(10)])
+  let ext = val_env.extend(db, "x", val_10)
+  // Build: (lambda y. x + y) 5
+  let var_x = db.call("Var", [@egglog.StrVal("x")])
+  let var_y = db.call("Var", [@egglog.StrVal("y")])
+  let body = db.call("Add", [var_x, var_y])
+  let lam_e = db.call("Lam", [@egglog.StrVal("y"), body])
+  let num_5 = db.call("Num", [@egglog.IntVal(5)])
+  let app_e = db.call("App", [lam_e, num_5])
+  let result = run_eval(db, ext.id, app_e, eval_rules())
+  let expected = db.call("ValInt", [@egglog.IntVal(15)])
+  inspect(result is Some(_), content="true")
+  inspect(same_class(db, result.unwrap(), expected), content="true")
+}
+
+///|
+test "eval let shadowing" {
+  // let x = 1 in let x = 2 in x => 2 (inner x shadows outer)
+  let db = lambda_eval_db()
+  let env = db.call("EmptyEnv", [])
+  let num_1 = db.call("Num", [@egglog.IntVal(1)])
+  let num_2 = db.call("Num", [@egglog.IntVal(2)])
+  let var_x = db.call("Var", [@egglog.StrVal("x")])
+  let inner_let = db.call("Let", [@egglog.StrVal("x"), num_2, var_x])
+  let outer_let = db.call("Let", [@egglog.StrVal("x"), num_1, inner_let])
+  let result = run_eval(db, env, outer_let, eval_rules())
+  let expected = db.call("ValInt", [@egglog.IntVal(2)])
+  inspect(result is Some(_), content="true")
+  inspect(same_class(db, result.unwrap(), expected), content="true")
+}
+
+///|
+test "eval unbound var" {
+  // Var("x") with no ValEnv entry => no Eval result (resolve-var doesn't fire)
+  let db = lambda_eval_db()
+  let env = db.call("EmptyEnv", [])
+  let var_x = db.call("Var", [@egglog.StrVal("x")])
+  let result = run_eval(db, env, var_x, eval_rules())
+  inspect(result is None, content="true")
+}
