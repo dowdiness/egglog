@@ -1,0 +1,38 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "dowdiness/egglog/examples/lambda-eval"
+
+import {
+  "dowdiness/egglog/src",
+}
+
+// Values
+pub fn demand_rules() -> Array[@src.Rule]
+
+pub fn eval_rules() -> Array[@src.Rule]
+
+pub fn lambda_eval_db() -> @src.Database
+
+pub fn leaf_rules() -> Array[@src.Rule]
+
+pub fn result_rules() -> Array[@src.Rule]
+
+pub fn run_eval(@src.Database, @src.Value, @src.Value, Array[@src.Rule], max_iters? : Int) -> @src.Value?
+
+pub fn trigger_rules() -> Array[@src.Rule]
+
+// Errors
+
+// Types and methods
+type TriggerKey derive(Eq, Hash)
+
+pub struct ValueEnv {
+  id : @src.Value
+  bindings : Map[String, @src.Value]
+}
+pub fn ValueEnv::extend(Self, @src.Database, String, @src.Value) -> Self
+pub fn ValueEnv::make(@src.Database) -> Self
+
+// Type aliases
+
+// Traits
+
