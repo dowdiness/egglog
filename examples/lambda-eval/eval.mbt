@@ -932,13 +932,10 @@ fn process_let_ready(
     let let_info = find_let(db, expr)
     match let_info {
       None => continue
-      Some((x_name, _val, body)) => {
-        let v = db.lookup("Eval", [env, args[1]])
-        // Actually we need Eval(env, val_expr) not Eval(env, let_expr)
+      Some((x_name, val_expr, body)) => {
         // Let(x, val, body, e): LetReady fires when Eval(env, val) is available
-        let val_expr = _val
-        let v2 = db.lookup("Eval", [env, val_expr])
-        match v2 {
+        let val_result = db.lookup("Eval", [env, val_expr])
+        match val_result {
           None => continue
           Some(val_result) => {
             let env_id = db.find(unwrap_id(env))
@@ -957,7 +954,6 @@ fn process_let_ready(
             let _ = db.set("LetBody", [env, expr], body)
             let _ = db.set("Demand", [ext.id, body], @egglog.IntVal(1))
             changed = true
-            ignore(v)
           }
         }
       }

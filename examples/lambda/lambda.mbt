@@ -6,7 +6,7 @@
 ///                Lam, App, Let, Unit, Unbound, Error
 ///   Types:       IntTy, BoolTy, UnitTy, Arrow
 ///   Envs:        EmptyEnv, ExtendEnv
-///   Relations:   HasType(env, expr)->type, InEnv(env, name)->type,
+///   Relations:   HasType(env, expr)->type, TypeEnv(env, name)->type,
 ///                Typing(env, expr)->IntVal(1)
 pub fn lambda_db() -> @egglog.Database {
   let db = @egglog.Database::new()
@@ -30,7 +30,7 @@ pub fn lambda_db() -> @egglog.Database {
   db.register("EmptyEnv") // EmptyEnv() -> env_id
   db.register("ExtendEnv") // ExtendEnv(parent, StrVal name, type) -> env_id
   db.register("HasType") // HasType(env_id, expr_id) -> type_id
-  db.register("InEnv") // InEnv(env_id, StrVal name) -> type_id
+  db.register("TypeEnv") // TypeEnv(env_id, StrVal name) -> type_id
   db.register("Typing") // Typing(env_id, expr_id) -> IntVal(1)  (trigger)
   db
 }
@@ -39,18 +39,18 @@ pub fn lambda_db() -> @egglog.Database {
 /// Host-language environment tracker.
 ///
 /// Calling `extend` creates a new `ExtendEnv` e-class and pre-seeds
-/// `InEnv(new_env, name) = ty` for **all** currently visible bindings —
+/// `TypeEnv(new_env, name) = ty` for **all** currently visible bindings —
 /// including those inherited from outer scopes. Inner bindings shadow outer
 /// ones because `Map` overwrite happens in MoonBit before seeding.
 ///
 /// **Required for nested scopes:** The Datalog rules (`type-let-body`,
-/// `check-lam`) only seed `InEnv` for the directly introduced binding.
+/// `check-lam`) only seed `TypeEnv` for the directly introduced binding.
 /// For terms with multiple nested scopes (e.g. `let x=1 in let y=2 in x+y`),
 /// use `LambdaEnv::extend` to build environments — it copies all outer
 /// bindings transitively, so outer variables remain visible in inner scopes.
 pub struct LambdaEnv {
   id : @egglog.Value
-  // Internal state: mirrors InEnv facts seeded in the database.
+  // Internal state: mirrors TypeEnv facts seeded in the database.
   // Not part of the stable API — use `extend` to update.
   bindings : Map[String, @egglog.Value]
 }
@@ -73,9 +73,9 @@ pub fn LambdaEnv::extend(
     new_bindings[k] = v
   }
   new_bindings[name] = ty // shadow: innermost binding wins
-  // Seed InEnv for every visible binding (transitive closure)
+  // Seed TypeEnv for every visible binding (transitive closure)
   for bname, btype in new_bindings {
-    let _ = db.set("InEnv", [new_id, @egglog.StrVal(bname)], btype)
+    let _ = db.set("TypeEnv", [new_id, @egglog.StrVal(bname)], btype)
   }
   { id: new_id, bindings: new_bindings }
 }
@@ -320,7 +320,7 @@ pub fn atom_rules() -> Array[@egglog.Rule] {
           @egglog.Var("_"),
         ]),
         @egglog.Fact("Var", [@egglog.Var("x"), @egglog.Var("e")]),
-        @egglog.Fact("InEnv", [
+        @egglog.Fact("TypeEnv", [
           @egglog.Var("env"),
           @egglog.Var("x"),
           @egglog.Var("t"),
@@ -430,7 +430,7 @@ pub fn let_rules() -> Array[@egglog.Rule] {
     // type-let-body: Let(x, v, body, e), Typing(env, e), HasType(env, v)=tv
     //   → let ext_env = ExtendEnv(env, x, tv)
     //     Typing(ext_env, body)
-    //     InEnv(ext_env, x) = tv
+    //     TypeEnv(ext_env, x) = tv
     {
       name: "type-let-body",
       query: [
@@ -466,7 +466,7 @@ pub fn let_rules() -> Array[@egglog.Rule] {
           @egglog.Lit(@egglog.IntVal(1)),
         ),
         @egglog.Set(
-          "InEnv",
+          "TypeEnv",
           [@egglog.Var("ext_env"), @egglog.Var("x")],
           @egglog.Var("tv"),
         ),
@@ -516,7 +516,7 @@ pub fn let_rules() -> Array[@egglog.Rule] {
 /// Lambda typing rules (bidirectional checking).
 ///
 /// check-lam: requires HasType(env, lam_e) = Arrow(a, b) to already exist.
-///   Seeds Typing, InEnv, and HasType(ext_env, body)=b for the body,
+///   Seeds Typing, TypeEnv, and HasType(ext_env, body)=b for the body,
 ///   propagating the expected codomain so nested lambdas can be checked.
 pub fn lam_rules() -> Array[@egglog.Rule] {
   [
@@ -554,7 +554,7 @@ pub fn lam_rules() -> Array[@egglog.Rule] {
           @egglog.Lit(@egglog.IntVal(1)),
         ),
         @egglog.Set(
-          "InEnv",
+          "TypeEnv",
           [@egglog.Var("ext_env"), @egglog.Var("x")],
           @egglog.Var("a"),
         ),

@@ -61,11 +61,11 @@ test "unit synthesizes UnitTy" {
 }
 
 ///|
-test "var with InEnv synthesizes type" {
+test "var with TypeEnv synthesizes type" {
   let db = lambda_db()
   let env = db.call("EmptyEnv", [])
   let int_ty = db.call("IntTy", [])
-  let _ = db.set("InEnv", [env, @egglog.StrVal("x")], int_ty)
+  let _ = db.set("TypeEnv", [env, @egglog.StrVal("x")], int_ty)
   let var_e = db.call("Var", [@egglog.StrVal("x")])
   let _ = db.set("Typing", [env, var_e], @egglog.IntVal(1))
   run(db, atom_rules())
@@ -84,9 +84,9 @@ test "unbound var produces no HasType" {
 }
 
 ///|
-test "var with no InEnv entry produces no HasType" {
+test "var with no TypeEnv entry produces no HasType" {
   // Exercises the failure path of type-var: Var("x") in a scope where
-  // no InEnv(env, "x") fact exists. Different from the Unbound constructor
+  // no TypeEnv(env, "x") fact exists. Different from the Unbound constructor
   // test above — this is a real Var node that type-var tries and fails to match.
   let db = lambda_db()
   let env = db.call("EmptyEnv", [])
@@ -130,7 +130,7 @@ test "app: non-arrow callee produces no HasType" {
   let env = db.call("EmptyEnv", [])
   let int_ty = db.call("IntTy", [])
   let f_e = db.call("Var", [@egglog.StrVal("f")])
-  let _ = db.set("InEnv", [env, @egglog.StrVal("f")], int_ty)
+  let _ = db.set("TypeEnv", [env, @egglog.StrVal("f")], int_ty)
   let arg_e = db.call("Num", [@egglog.IntVal(42)])
   let app_e = db.call("App", [f_e, arg_e])
   let _ = db.set("Typing", [env, app_e], @egglog.IntVal(1))
@@ -143,7 +143,7 @@ test "check-lam: codomain seeded enables nested lambda checking" {
   // (λx. λy. x + y) : Int -> Int -> Int
   // Requires fix: check-lam must seed HasType(ext_env, body) = b so the inner
   // lambda gets its expected type automatically. LambdaEnv is used here for
-  // transitive InEnv seeding (outer var x visible in inner scope).
+  // transitive TypeEnv seeding (outer var x visible in inner scope).
   let db = lambda_db()
   let int_ty = db.call("IntTy", [])
   let inner_arr = db.call("Arrow", [int_ty, int_ty]) // Int -> Int
@@ -264,7 +264,7 @@ test "app synthesizes return type from Arrow" {
   let arr_ty = db.call("Arrow", [int_ty, int_ty])
   // Build: f applied to 42, where f : Int -> Int
   let f_e = db.call("Var", [@egglog.StrVal("f")])
-  let _ = db.set("InEnv", [env, @egglog.StrVal("f")], arr_ty)
+  let _ = db.set("TypeEnv", [env, @egglog.StrVal("f")], arr_ty)
   let arg_e = db.call("Num", [@egglog.IntVal(42)])
   let app_e = db.call("App", [f_e, arg_e])
   let _ = db.set("Typing", [env, app_e], @egglog.IntVal(1))
@@ -363,8 +363,8 @@ test "LambdaEnv inherited bindings: let x=1 in let y=2 in x+y" {
   // Exercises LambdaEnv::extend transitive seeding.
   // When typing the body `x+y` in env2 (x:Int, y:Int), both x and y must be
   // visible. LambdaEnv::extend copies ALL outer bindings into the new env,
-  // so InEnv(env2, "x") = IntTy is seeded even though only y is the new binding.
-  // Without transitive seeding, the `type-var` rule for x would find no InEnv
+  // so TypeEnv(env2, "x") = IntTy is seeded even though only y is the new binding.
+  // Without transitive seeding, the `type-var` rule for x would find no TypeEnv
   // entry in env2 and x+y would not type-check.
   let db = lambda_db()
   let int_ty = db.call("IntTy", [])
@@ -384,7 +384,7 @@ test "LambdaEnv inherited bindings: let x=1 in let y=2 in x+y" {
   let _ = db.set("Typing", [env1.id, num_2], @egglog.IntVal(1))
   let _ = db.set("Typing", [env0.id, num_1], @egglog.IntVal(1))
   let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(all_rules()), 30))
-  // body (x + y) : Int in env2 — requires both x and y visible via InEnv
+  // body (x + y) : Int in env2 — requires both x and y visible via TypeEnv
   let result = db.lookup("HasType", [env2.id, body])
   inspect(same_class(db, result.unwrap(), int_ty), content="true")
 }
