@@ -15,12 +15,12 @@ pub(all) enum Action {
   Union(Term, Term)
   Set(String, Array[Term], Term)
   LetAction(String, Term)
-} derive(Show, @debug.Debug)
+} derive(@debug.Debug)
 
 pub(all) enum Atom {
   Fact(String, Array[Term])
   Equal(Term, Term)
-} derive(Show, @debug.Debug)
+} derive(@debug.Debug)
 
 pub struct Database {
   // private fields
@@ -61,36 +61,38 @@ pub(all) struct Rule {
   name : String
   query : Array[Atom]
   actions : Array[Action]
-} derive(Show, @debug.Debug)
+} derive(@debug.Debug)
 
 pub(all) enum Schedule {
   Run(Array[Rule])
   Saturate(Schedule, Int)
   Repeat(Int, Schedule)
   Seq(Array[Schedule])
-} derive(Show, @debug.Debug)
+} derive(@debug.Debug)
 
 pub(all) enum Sort {
   EqSort(String)
   PrimitiveSort(String)
-} derive(Eq, Hash, Show, @debug.Debug)
+} derive(Eq, Hash, @debug.Debug)
 
 pub(all) enum StopReason {
   Saturated
   IterLimit
-} derive(Eq, Show, @debug.Debug)
+} derive(Eq, @debug.Debug)
+pub impl Show for StopReason
 
 pub(all) enum Term {
   Var(String)
   Lit(Value)
   Call(String, Array[Term])
-} derive(Eq, Show, @debug.Debug)
+} derive(Eq, @debug.Debug)
 
 pub(all) enum Value {
   IdVal(Id)
   IntVal(Int)
   StrVal(String)
-} derive(Compare, Eq, Hash, Show, @debug.Debug)
+} derive(Compare, Eq, Hash, @debug.Debug)
+pub impl Show for Value
 
 // Type aliases
 

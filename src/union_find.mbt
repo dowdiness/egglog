@@ -25,7 +25,7 @@ priv struct UnionFind {
   ranks : Array[Rank]
 
   fn new() -> UnionFind
-} derive(Default, Show, Debug)
+} derive(Default, Debug)
 
 ///|
 fn UnionFind::new() -> UnionFind {

@@ -5,7 +5,12 @@ test "insert and lookup row" {
   let ft = FunctionTable(rt, None)
   let key : Array[Value] = [IdVal(Id(0)), IdVal(Id(1))]
   let _ = ft.insert(key, IdVal(Id(2)))
-  inspect(ft.lookup(key), content="Some(IdVal(2))")
+  inspect(
+    ft.lookup(key),
+    content=(
+      #|Some(IdVal(Id(2)))
+    ),
+  )
 }
 
 ///|
@@ -23,7 +28,12 @@ test "insert duplicate key without merge keeps old" {
   let key : Array[Value] = [IdVal(Id(0)), IdVal(Id(1))]
   let _ = ft.insert(key, IdVal(Id(2)))
   let result = ft.insert(key, IdVal(Id(3)))
-  inspect(result, content="(IdVal(2), false)")
+  inspect(
+    result,
+    content=(
+      #|(IdVal(Id(2)), false)
+    ),
+  )
 }
 
 ///|
@@ -39,7 +49,12 @@ test "insert duplicate key with merge resolves" {
   let key : Array[Value] = [IdVal(Id(0))]
   let _ = ft.insert(key, IdVal(Id(5)))
   let _ = ft.insert(key, IdVal(Id(3)))
-  inspect(ft.lookup(key), content="Some(IdVal(3))")
+  inspect(
+    ft.lookup(key),
+    content=(
+      #|Some(IdVal(Id(3)))
+    ),
+  )
 }
 
 ///|

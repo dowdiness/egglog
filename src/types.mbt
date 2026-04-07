@@ -8,7 +8,12 @@ pub(all) enum Value {
   IdVal(Id)
   IntVal(Int)
   StrVal(String)
-} derive(Eq, Hash, Compare, Show, Debug)
+} derive(Eq, Hash, Compare, Debug)
+
+///|
+pub impl Show for Value with output(self, logger) {
+  logger.write_string(@debug.to_string(self))
+}
 
 ///|
 /// Column metadata for future schema-aware table definitions.
@@ -19,4 +24,4 @@ pub(all) enum Value {
 pub(all) enum Sort {
   EqSort(String)
   PrimitiveSort(String)
-} derive(Eq, Hash, Show, Debug)
+} derive(Eq, Hash, Debug)
