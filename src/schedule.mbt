@@ -9,14 +9,19 @@ pub(all) enum Schedule {
   Saturate(Schedule, Int)
   Repeat(Int, Schedule)
   Seq(Array[Schedule])
-} derive(Show, Debug)
+} derive(Debug)
 
 ///|
 /// Coarse status returned by schedule execution.
 pub(all) enum StopReason {
   Saturated
   IterLimit
-} derive(Eq, Show, Debug)
+} derive(Eq, Debug)
+
+///|
+pub impl Show for StopReason with output(self, logger) {
+  logger.write_string(@debug.to_string(self))
+}
 
 ///|
 /// Fire one rule against the current database snapshot.

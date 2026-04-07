@@ -8,14 +8,14 @@ pub(all) enum Term {
   Var(String)
   Lit(Value)
   Call(String, Array[Term])
-} derive(Eq, Show, Debug)
+} derive(Eq, Debug)
 
 ///|
 /// An atom in a query pattern.
 pub(all) enum Atom {
   Fact(String, Array[Term])
   Equal(Term, Term)
-} derive(Show, Debug)
+} derive(Debug)
 
 ///|
 /// An action to execute when a rule fires.
@@ -23,7 +23,7 @@ pub(all) enum Action {
   Union(Term, Term)
   Set(String, Array[Term], Term)
   LetAction(String, Term)
-} derive(Show, Debug)
+} derive(Debug)
 
 ///|
 /// A rule: query atoms + actions.
@@ -31,7 +31,7 @@ pub(all) struct Rule {
   name : String
   query : Array[Atom]
   actions : Array[Action]
-} derive(Show, Debug)
+} derive(Debug)
 
 ///|
 /// Action-time term evaluation.
