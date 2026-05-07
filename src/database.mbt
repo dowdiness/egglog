@@ -18,12 +18,10 @@ pub struct Database {
   priv tables : Map[String, FunctionTable]
   priv pending : Array[(Id, Id)]
   priv registered_rules : Map[String, Unit]
-
-  fn new() -> Database
 }
 
 ///|
-pub fn Database::new() -> Database {
+pub fn Database::Database() -> Database {
   {
     rt: @incr.Runtime::new(),
     uf: UnionFind(),
@@ -31,6 +29,13 @@ pub fn Database::new() -> Database {
     pending: [],
     registered_rules: {},
   }
+}
+
+///|
+/// Forwarding alias for `Database::Database`. Preserves the documented
+/// `Database::new()` public API as a stable entry point.
+pub fn Database::new() -> Database {
+  Database::Database()
 }
 
 ///|

@@ -25,7 +25,7 @@ pub fn same_class(
 ///|
 /// Create a database with STLC expression and type constructors.
 pub fn stlc_db() -> @egglog.Database {
-  let db = @egglog.Database::new()
+  let db = @egglog.Database::Database()
   // Expression constructors intern syntax into e-classes.
   db.register("Num") // Num(int_value) -> expr_id
   db.register("Var") // Var(name) -> expr_id

@@ -24,9 +24,8 @@ pub(all) enum Atom {
 
 pub struct Database {
   // private fields
-
-  fn new() -> Database
 }
+pub fn Database::Database() -> Self
 pub fn Database::call(Self, String, Array[Value]) -> Value
 pub fn Database::extract(Self, Id, (String, Array[Int]) -> Int) -> (Int, ExtractedExpr)
 pub fn Database::find(Self, Id) -> Id
@@ -53,8 +52,6 @@ pub(all) struct ExtractedExpr {
 pub impl Show for ExtractedExpr
 
 pub(all) struct Id(Int) derive(Compare, Eq, Hash, @debug.Debug)
-#deprecated
-pub fn Id::inner(Self) -> Int
 pub impl Show for Id
 
 pub(all) struct Rule {

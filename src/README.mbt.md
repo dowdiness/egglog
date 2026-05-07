@@ -118,7 +118,7 @@ test "merge tables combine conflicting primitive outputs" {
   db.register("Score", merge=Some(max_int_value))
   let _ = db.set("Score", [StrVal("alice")], IntVal(3))
   let _ = db.set("Score", [StrVal("alice")], IntVal(5))
-  assert_eq(db.lookup("Score", [StrVal("alice")]), Some(IntVal(5)))
+  @debug.assert_eq(db.lookup("Score", [StrVal("alice")]), Some(IntVal(5)))
 }
 ```
 
