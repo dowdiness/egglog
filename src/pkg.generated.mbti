@@ -25,12 +25,12 @@ pub(all) enum Atom {
 pub struct Database {
   // private fields
 }
+#alias(new, deprecated)
 pub fn Database::Database() -> Self
 pub fn Database::call(Self, String, Array[Value]) -> Value
 pub fn Database::extract(Self, Id, (String, Array[Int]) -> Int) -> (Int, ExtractedExpr)
 pub fn Database::find(Self, Id) -> Id
 pub fn Database::lookup(Self, String, Array[Value]) -> Value?
-pub fn Database::new() -> Self
 pub fn Database::rebuild(Self) -> Unit
 pub fn Database::register(Self, String, merge? : ((Value, Value) -> Value)?) -> Unit
 pub fn Database::row_count(Self, String) -> Int
