@@ -34,6 +34,7 @@ pub fn Database::Database() -> Database {
 ///|
 /// Forwarding alias for `Database::Database`. Preserves the documented
 /// `Database::new()` public API as a stable entry point.
+#deprecated("Use Database::Database() instead")
 pub fn Database::new() -> Database {
   Database::Database()
 }
