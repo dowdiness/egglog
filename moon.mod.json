@@ -7,8 +7,5 @@
   "description": "Relational e-graph engine (egglog) in MoonBit",
   "deps": {
     "dowdiness/incr": "0.4.1"
-  },
-  "test-deps": {
-    "moonbitlang/core": "builtin"
   }
 }
