@@ -92,7 +92,7 @@ rebuild.
 ```mbt check
 ///|
 test "interning constructors returns one canonical row per key" {
-  let db = Database::new()
+  let db = Database::Database()
   db.register("Num")
   let n1 = db.call("Num", [IntVal(7)])
   let n2 = db.call("Num", [IntVal(7)])
@@ -114,18 +114,18 @@ fn max_int_value(old : Value, new : Value) -> Value {
 
 ///|
 test "merge tables combine conflicting primitive outputs" {
-  let db = Database::new()
+  let db = Database::Database()
   db.register("Score", merge=Some(max_int_value))
   let _ = db.set("Score", [StrVal("alice")], IntVal(3))
   let _ = db.set("Score", [StrVal("alice")], IntVal(5))
-  assert_eq(db.lookup("Score", [StrVal("alice")]), Some(IntVal(5)))
+  @debug.assert_eq(db.lookup("Score", [StrVal("alice")]), Some(IntVal(5)))
 }
 ```
 
 ## Example: Equality Collapse Can Reveal Conflicts
 
 ```mbt nocheck
-let db = Database::new()
+let db = Database::Database()
 db.register("Num")
 db.register("Color")
 

@@ -22,23 +22,25 @@ priv struct FunctionTable {
   rows : Map[String, Value]
   raw_keys : Map[String, Array[Value]]
   merge : ((Value, Value) -> Value)?
-
-  fn new(
-    rt : @incr.Runtime,
-    merge : ((Value, Value) -> Value)?,
-  ) -> FunctionTable
 }
 
 ///|
-fn FunctionTable::new(
+fn FunctionTable::FunctionTable(
   rt : @incr.Runtime,
   merge : ((Value, Value) -> Value)?,
 ) -> FunctionTable {
-  let fr = match merge {
+  { fr: make_fr(rt, merge), rows: {}, raw_keys: {}, merge }
+}
+
+///|
+fn make_fr(
+  rt : @incr.Runtime,
+  merge : ((Value, Value) -> Value)?,
+) -> @incr.FunctionalRelation[String, Value] {
+  match merge {
     Some(f) => @incr.FunctionalRelation::new(rt, merge=f)
     None => @incr.FunctionalRelation::new(rt)
   }
-  { fr, rows: {}, raw_keys: {}, merge }
 }
 
 ///|
@@ -159,10 +161,7 @@ fn FunctionTable::id(self : FunctionTable) -> @incr.CellId {
 /// Creates a new FunctionalRelation on the given Runtime and seeds all
 /// current rows into its delta so the first fixpoint iteration sees them.
 fn FunctionTable::reset_fr(self : FunctionTable, rt : @incr.Runtime) -> Unit {
-  let fr = match self.merge {
-    Some(f) => @incr.FunctionalRelation::new(rt, merge=f)
-    None => @incr.FunctionalRelation::new(rt)
-  }
+  let fr = make_fr(rt, self.merge)
   // Seed current rows into the new FR's delta
   self.rows.each(fn(ks, v) { let _ = fr.insert(ks, v) })
   self.fr = fr

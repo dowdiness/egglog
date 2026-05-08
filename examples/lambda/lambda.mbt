@@ -9,7 +9,7 @@
 ///   Relations:   HasType(env, expr)->type, TypeEnv(env, name)->type,
 ///                Typing(env, expr)->IntVal(1)
 pub fn lambda_db() -> @egglog.Database {
-  let db = @egglog.Database::new()
+  let db = @egglog.Database::Database()
   db.register("Num") // Num(IntVal n) -> expr_id
   db.register("BoolLit") // BoolLit(IntVal b) -> expr_id  (1=true, 0=false)
   db.register("Var") // Var(StrVal name) -> expr_id

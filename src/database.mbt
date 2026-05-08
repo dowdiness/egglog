@@ -18,12 +18,11 @@ pub struct Database {
   priv tables : Map[String, FunctionTable]
   priv pending : Array[(Id, Id)]
   priv registered_rules : Map[String, Unit]
-
-  fn new() -> Database
 }
 
 ///|
-pub fn Database::new() -> Database {
+#alias(new, deprecated="Use Database::Database() instead")
+pub fn Database::Database() -> Database {
   {
     rt: @incr.Runtime::new(),
     uf: UnionFind(),

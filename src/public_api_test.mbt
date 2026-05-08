@@ -2,7 +2,7 @@
 /// Black-box smoke test showing the public API is sufficient for a tiny use
 /// case without white-box helpers.
 test "public database api is usable from blackbox tests" {
-  let db = Database::new()
+  let db = Database::Database()
   db.register("Num")
   let value = db.call("Num", [IntVal(7)])
   db.rebuild()
@@ -20,7 +20,7 @@ test "public database api is usable from blackbox tests" {
 
 ///|
 test "Database::scan returns all rows" {
-  let db = Database::new()
+  let db = Database::Database()
   db.register("Foo")
   let _ = db.call("Foo", [IntVal(1)])
   let _ = db.call("Foo", [IntVal(2)])
@@ -31,14 +31,14 @@ test "Database::scan returns all rows" {
 
 ///|
 test "Database::scan on empty table returns empty array" {
-  let db = Database::new()
+  let db = Database::Database()
   db.register("Empty")
   inspect(db.scan("Empty").length(), content="0")
 }
 
 ///|
 test "Database::row_count tracks table size" {
-  let db = Database::new()
+  let db = Database::Database()
   db.register("Bar")
   inspect(db.row_count("Bar"), content="0")
   let _ = db.call("Bar", [IntVal(10)])
@@ -52,7 +52,7 @@ test "Database::row_count tracks table size" {
 
 ///|
 test "Database::scan and row_count after rules" {
-  let db = Database::new()
+  let db = Database::Database()
   db.register("Num")
   db.register("HasType")
   db.register("IntTy")
@@ -78,7 +78,7 @@ test "Database::scan and row_count after rules" {
 
 ///|
 test "Database::scan after union and rebuild" {
-  let db = Database::new()
+  let db = Database::Database()
   db.register("F")
   let a = db.call("F", [IntVal(1)])
   let b = db.call("F", [IntVal(2)])
