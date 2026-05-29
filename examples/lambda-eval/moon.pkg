@@ -1,4 +1,4 @@
 import {
   "dowdiness/egglog/src" @egglog,
-  "dowdiness/egglog/examples/lambda" @lambda,
+  "dowdiness/egglog/examples/lambda",
 }

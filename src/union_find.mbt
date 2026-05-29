@@ -8,7 +8,7 @@
 pub(all) struct Id(Int) derive(Eq, Compare, Hash, Debug)
 
 ///|
-pub impl Show for Id with output(self, logger) {
+pub impl Show for Id with fn output(self, logger) {
   let Id(i) = self
   logger.write_string(i.to_string())
 }

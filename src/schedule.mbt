@@ -19,7 +19,7 @@ pub(all) enum StopReason {
 } derive(Eq, Debug)
 
 ///|
-pub impl Show for StopReason with output(self, logger) {
+pub impl Show for StopReason with fn output(self, logger) {
   logger.write_string(@debug.to_string(self))
 }
 

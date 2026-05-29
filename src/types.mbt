@@ -11,7 +11,7 @@ pub(all) enum Value {
 } derive(Eq, Hash, Compare, Debug)
 
 ///|
-pub impl Show for Value with output(self, logger) {
+pub impl Show for Value with fn output(self, logger) {
   logger.write_string(@debug.to_string(self))
 }
 
