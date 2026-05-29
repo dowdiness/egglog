@@ -11,7 +11,7 @@ pub(all) enum ExtractedArg {
 } derive(Debug)
 
 ///|
-pub impl Show for ExtractedArg with output(self, logger) {
+pub impl Show for ExtractedArg with fn output(self, logger) {
   match self {
     Expr(expr) => Show::output(expr, logger)
     Primitive(value) => Show::output(value, logger)
@@ -27,7 +27,7 @@ pub(all) struct ExtractedExpr {
 } derive(Debug)
 
 ///|
-pub impl Show for ExtractedExpr with output(self, logger) {
+pub impl Show for ExtractedExpr with fn output(self, logger) {
   if self.args.is_empty() {
     logger.write_string(self.func_name)
   } else {
