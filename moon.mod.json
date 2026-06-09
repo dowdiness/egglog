@@ -6,6 +6,6 @@
   "keywords": ["egglog", "e-graph", "datalog", "equality-saturation", "relational"],
   "description": "Relational e-graph engine (egglog) in MoonBit",
   "deps": {
-    "dowdiness/incr": "0.8.0"
+    "dowdiness/incr": "0.9.0"
   }
 }
