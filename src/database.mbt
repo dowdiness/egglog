@@ -148,11 +148,11 @@ pub fn Database::set(
                   "conflicting outputs for " +
                   name +
                   " on " +
-                  canon.to_string() +
+                  @debug.to_string(canon) +
                   ": " +
-                  canon_old.to_string() +
+                  @debug.to_string(canon_old) +
                   " vs " +
-                  canon_val.to_string(),
+                  @debug.to_string(canon_val),
                 )
             }
         }
@@ -241,11 +241,11 @@ fn Database::rebuild_table(
                     "conflicting outputs for " +
                     name +
                     " on " +
-                    canon_key.to_string() +
+                    @debug.to_string(canon_key) +
                     ": " +
-                    canon_existing.to_string() +
+                    @debug.to_string(canon_existing) +
                     " vs " +
-                    canon_val.to_string(),
+                    @debug.to_string(canon_val),
                   )
               }
           }

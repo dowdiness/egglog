@@ -5,7 +5,7 @@ test "insert and lookup row" {
   let ft = FunctionTable(rt, None)
   let key : Array[Value] = [IdVal(Id(0)), IdVal(Id(1))]
   let _ = ft.insert(key, IdVal(Id(2)))
-  debug_inspect(
+  debug_@debug.debug_inspect(
     ft.lookup(key),
     content=(
       #|Some(IdVal(Id(2)))
@@ -18,7 +18,7 @@ test "lookup missing row returns None" {
   let rt = @incr.Runtime::new()
   let ft = FunctionTable(rt, None)
   let key : Array[Value] = [IdVal(Id(0)), IdVal(Id(1))]
-  inspect(ft.lookup(key) is None, content="true")
+  @debug.debug_inspect(ft.lookup(key) is None, content="true")
 }
 
 ///|
@@ -28,7 +28,7 @@ test "insert duplicate key without merge keeps old" {
   let key : Array[Value] = [IdVal(Id(0)), IdVal(Id(1))]
   let _ = ft.insert(key, IdVal(Id(2)))
   let result = ft.insert(key, IdVal(Id(3)))
-  inspect(
+  @debug.debug_inspect(
     result,
     content=(
       #|(IdVal(Id(2)), false)
@@ -49,7 +49,7 @@ test "insert duplicate key with merge resolves" {
   let key : Array[Value] = [IdVal(Id(0))]
   let _ = ft.insert(key, IdVal(Id(5)))
   let _ = ft.insert(key, IdVal(Id(3)))
-  debug_inspect(
+  debug_@debug.debug_inspect(
     ft.lookup(key),
     content=(
       #|Some(IdVal(Id(3)))
@@ -63,7 +63,7 @@ test "row count" {
   let ft = FunctionTable(rt, None)
   let _ = ft.insert([IdVal(Id(0))], IdVal(Id(1)))
   let _ = ft.insert([IdVal(Id(2))], IdVal(Id(3)))
-  inspect(ft.row_count(), content="2")
+  @debug.debug_inspect(ft.row_count(), content="2")
 }
 
 ///|
@@ -73,5 +73,5 @@ test "scan all rows" {
   let _ = ft.insert([IntVal(1)], IdVal(Id(0)))
   let _ = ft.insert([IntVal(2)], IdVal(Id(1)))
   let rows = ft.scan()
-  inspect(rows.length(), content="2")
+  @debug.debug_inspect(rows.length(), content="2")
 }
