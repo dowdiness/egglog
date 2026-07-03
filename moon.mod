@@ -17,5 +17,5 @@ keywords = [
 description = "Relational e-graph engine (egglog) in MoonBit"
 
 import {
-  "dowdiness/incr@0.12.0",
+  "dowdiness/incr@0.13.0",
 }
