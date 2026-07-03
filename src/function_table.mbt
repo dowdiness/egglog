@@ -9,7 +9,7 @@
 /// **Dual storage:**
 /// - `rows` (`Map[String, Value]`) — authoritative key-value store for
 ///   immediate O(log n) lookup via `lookup()` and full scan via `scan()`.
-/// - `fr` (`@incr.FunctionalRelation[String, Value]`) — delta tracking for
+/// - `fr` (`@incr.MapRelation[String, Value]`) — delta tracking for
 ///   semi-naive evaluation. Every write to `rows` also writes to `fr`, so
 ///   `delta_scan()` returns only rows that are new or changed since the last
 ///   `fixpoint()` drain.
@@ -18,7 +18,7 @@
 /// `Saturate` call via `reset_fr()`, which seeds all current rows into the
 /// new `fr`'s delta so the first fixpoint iteration processes them.
 priv struct FunctionTable {
-  mut fr : @incr.FunctionalRelation[String, Value]
+  mut fr : @incr.MapRelation[String, Value]
   rows : Map[String, Value]
   raw_keys : Map[String, Array[Value]]
   merge : ((Value, Value) -> Value)?
@@ -36,10 +36,10 @@ fn FunctionTable::FunctionTable(
 fn make_fr(
   rt : @incr.Runtime,
   merge : ((Value, Value) -> Value)?,
-) -> @incr.FunctionalRelation[String, Value] {
+) -> @incr.MapRelation[String, Value] {
   match merge {
-    Some(f) => @incr.FunctionalRelation::new(rt, merge=f)
-    None => @incr.FunctionalRelation::new(rt)
+    Some(f) => @incr.MapRelation::MapRelation(rt, merge=f)
+    None => @incr.MapRelation::MapRelation(rt)
   }
 }
 
@@ -132,7 +132,7 @@ fn FunctionTable::scan(self : FunctionTable) -> Array[(Array[Value], Value)] {
 /// Scan only rows that changed since the last delta scan.
 ///
 /// Returns structured keys (from `raw_keys`) paired with their values, but only
-/// for entries that appear in the `FunctionalRelation` delta buffer.
+/// for entries that appear in the `MapRelation` delta buffer.
 #warnings("-unused_value")
 fn FunctionTable::delta_scan(
   self : FunctionTable,
@@ -149,7 +149,7 @@ fn FunctionTable::delta_scan(
 }
 
 ///|
-/// The reactive cell id for this table's `FunctionalRelation`.
+/// The reactive cell id for this table's `MapRelation`.
 #warnings("-unused_value")
 fn FunctionTable::id(self : FunctionTable) -> @incr.CellId {
   self.fr.id()
@@ -158,7 +158,7 @@ fn FunctionTable::id(self : FunctionTable) -> @incr.CellId {
 ///|
 /// Rebind this table to a new Runtime for a fresh Saturate scope.
 ///
-/// Creates a new FunctionalRelation on the given Runtime and seeds all
+/// Creates a new MapRelation on the given Runtime and seeds all
 /// current rows into its delta so the first fixpoint iteration sees them.
 fn FunctionTable::reset_fr(self : FunctionTable, rt : @incr.Runtime) -> Unit {
   let fr = make_fr(rt, self.merge)

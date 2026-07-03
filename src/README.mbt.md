@@ -52,7 +52,7 @@ tables. This avoids silent first-writer-wins behavior after equality collapse.
 Each `FunctionTable` uses **dual storage**:
 
 - `rows` (`Map[String, Value]`) — immediate lookup for `call`/`set`/`lookup`.
-- `fr` (`@incr.FunctionalRelation[String, Value]`) — delta tracking for
+- `fr` (`@incr.MapRelation[String, Value]`) — delta tracking for
   semi-naive evaluation. Rows inserted into `rows` are also written to `fr`.
 
 When `Saturate` runs, it creates a fresh `@incr.Runtime`, rebinds each table's

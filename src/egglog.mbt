@@ -7,7 +7,7 @@
 // uses relational joins, and rules are Datalog queries with actions.
 //
 // Semi-naive evaluation is powered by `dowdiness/incr`'s
-// `FunctionalRelation[K, V]`: each table tracks which rows are new
+// `MapRelation[K, V]`: each table tracks which rows are new
 // (delta) vs already processed (current). During `Saturate`, rules
 // are registered with `incr`'s `Runtime` and driven by `fixpoint()`,
 // which drains deltas, applies rules, and promotes staged results
