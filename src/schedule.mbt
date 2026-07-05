@@ -61,7 +61,7 @@ pub fn Database::run_schedule(
     Saturate(inner, max_iters) => {
       // Create a fresh Runtime scoped to this Saturate call so rules
       // from a previous Saturate do not leak into this one.
-      let sat_rt = @incr.Runtime::new()
+      let sat_rt = @incr.Runtime()
       self.tables.each(fn(_name, table) { table.reset_fr(sat_rt) })
       let old_rt = self.rt
       self.rt = sat_rt

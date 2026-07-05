@@ -1,7 +1,7 @@
 ///|
 /// These tests isolate table storage rules from the rest of the e-graph.
 test "insert and lookup row" {
-  let rt = @incr.Runtime::new()
+  let rt = @incr.Runtime()
   let ft = FunctionTable(rt, None)
   let key : Array[Value] = [IdVal(Id(0)), IdVal(Id(1))]
   let _ = ft.insert(key, IdVal(Id(2)))
@@ -15,7 +15,7 @@ test "insert and lookup row" {
 
 ///|
 test "lookup missing row returns None" {
-  let rt = @incr.Runtime::new()
+  let rt = @incr.Runtime()
   let ft = FunctionTable(rt, None)
   let key : Array[Value] = [IdVal(Id(0)), IdVal(Id(1))]
   @debug.debug_inspect(ft.lookup(key) is None, content="true")
@@ -23,7 +23,7 @@ test "lookup missing row returns None" {
 
 ///|
 test "insert duplicate key without merge keeps old" {
-  let rt = @incr.Runtime::new()
+  let rt = @incr.Runtime()
   let ft = FunctionTable(rt, None)
   let key : Array[Value] = [IdVal(Id(0)), IdVal(Id(1))]
   let _ = ft.insert(key, IdVal(Id(2)))
@@ -44,7 +44,7 @@ test "insert duplicate key with merge resolves" {
       _ => a
     }
   }
-  let rt = @incr.Runtime::new()
+  let rt = @incr.Runtime()
   let ft = FunctionTable(rt, Some(merge))
   let key : Array[Value] = [IdVal(Id(0))]
   let _ = ft.insert(key, IdVal(Id(5)))
@@ -59,7 +59,7 @@ test "insert duplicate key with merge resolves" {
 
 ///|
 test "row count" {
-  let rt = @incr.Runtime::new()
+  let rt = @incr.Runtime()
   let ft = FunctionTable(rt, None)
   let _ = ft.insert([IdVal(Id(0))], IdVal(Id(1)))
   let _ = ft.insert([IdVal(Id(2))], IdVal(Id(3)))
@@ -68,7 +68,7 @@ test "row count" {
 
 ///|
 test "scan all rows" {
-  let rt = @incr.Runtime::new()
+  let rt = @incr.Runtime()
   let ft = FunctionTable(rt, None)
   let _ = ft.insert([IntVal(1)], IdVal(Id(0)))
   let _ = ft.insert([IntVal(2)], IdVal(Id(1)))

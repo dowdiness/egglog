@@ -24,7 +24,7 @@ pub struct Database {
 #alias(new, deprecated="Use Database::Database() instead")
 pub fn Database::Database() -> Database {
   {
-    rt: @incr.Runtime::new(),
+    rt: @incr.Runtime(),
     uf: UnionFind(),
     tables: {},
     pending: [],
