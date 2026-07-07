@@ -38,7 +38,7 @@ pub fn lambda_db() -> @egglog.Database {
 ///|
 /// Host-language environment tracker.
 ///
-/// Calling `extend` creates a new `ExtendEnv` e-class and pre-seeds
+/// Calling `bind` creates a new `ExtendEnv` e-class and pre-seeds
 /// `TypeEnv(new_env, name) = ty` for **all** currently visible bindings —
 /// including those inherited from outer scopes. Inner bindings shadow outer
 /// ones because `Map` overwrite happens in MoonBit before seeding.
@@ -46,12 +46,12 @@ pub fn lambda_db() -> @egglog.Database {
 /// **Required for nested scopes:** The Datalog rules (`type-let-body`,
 /// `check-lam`) only seed `TypeEnv` for the directly introduced binding.
 /// For terms with multiple nested scopes (e.g. `let x=1 in let y=2 in x+y`),
-/// use `LambdaEnv::extend` to build environments — it copies all outer
+/// use `LambdaEnv::bind` to build environments — it copies all outer
 /// bindings transitively, so outer variables remain visible in inner scopes.
 pub struct LambdaEnv {
   id : @egglog.Value
   // Internal state: mirrors TypeEnv facts seeded in the database.
-  // Not part of the stable API — use `extend` to update.
+  // Not part of the stable API — use `bind` to update.
   bindings : Map[String, @egglog.Value]
 }
 
@@ -61,7 +61,7 @@ pub fn LambdaEnv::make(db : @egglog.Database) -> LambdaEnv {
 }
 
 ///|
-pub fn LambdaEnv::extend(
+pub fn LambdaEnv::bind(
   self : LambdaEnv,
   db : @egglog.Database,
   name : String,
