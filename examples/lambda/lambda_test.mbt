@@ -149,8 +149,8 @@ test "check-lam: codomain seeded enables nested lambda checking" {
   let inner_arr = db.call("Arrow", [int_ty, int_ty]) // Int -> Int
   let outer_arr = db.call("Arrow", [int_ty, inner_arr]) // Int -> Int -> Int
   let env0 = LambdaEnv::make(db)
-  let env_x = env0.extend(db, "x", int_ty)
-  let env_xy = env_x.extend(db, "y", int_ty)
+  let env_x = env0.bind(db, "x", int_ty)
+  let env_xy = env_x.bind(db, "y", int_ty)
   let var_x = db.call("Var", [@egglog.StrVal("x")])
   let var_y = db.call("Var", [@egglog.StrVal("y")])
   let body = db.call("Add", [var_x, var_y])
@@ -360,9 +360,9 @@ test "app + lam full round-trip" {
 
 ///|
 test "LambdaEnv inherited bindings: let x=1 in let y=2 in x+y" {
-  // Exercises LambdaEnv::extend transitive seeding.
+  // Exercises LambdaEnv::bind transitive seeding.
   // When typing the body `x+y` in env2 (x:Int, y:Int), both x and y must be
-  // visible. LambdaEnv::extend copies ALL outer bindings into the new env,
+  // visible. LambdaEnv::bind copies ALL outer bindings into the new env,
   // so TypeEnv(env2, "x") = IntTy is seeded even though only y is the new binding.
   // Without transitive seeding, the `type-var` rule for x would find no TypeEnv
   // entry in env2 and x+y would not type-check.
@@ -370,9 +370,9 @@ test "LambdaEnv inherited bindings: let x=1 in let y=2 in x+y" {
   let int_ty = db.call("IntTy", [])
   let env0 = LambdaEnv::make(db)
   // env1 = {x: IntTy}
-  let env1 = env0.extend(db, "x", int_ty)
+  let env1 = env0.bind(db, "x", int_ty)
   // env2 = {x: IntTy, y: IntTy}  (transitive: x is inherited from env1)
-  let env2 = env1.extend(db, "y", int_ty)
+  let env2 = env1.bind(db, "y", int_ty)
   // Build: let x = 1 in let y = 2 in x + y
   let num_1 = db.call("Num", [@egglog.IntVal(1)])
   let num_2 = db.call("Num", [@egglog.IntVal(2)])

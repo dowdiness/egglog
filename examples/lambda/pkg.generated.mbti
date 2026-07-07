@@ -31,7 +31,7 @@ pub struct LambdaEnv {
   id : @src.Value
   bindings : Map[String, @src.Value]
 }
-pub fn LambdaEnv::extend(Self, @src.Database, String, @src.Value) -> Self
+pub fn LambdaEnv::bind(Self, @src.Database, String, @src.Value) -> Self
 pub fn LambdaEnv::make(@src.Database) -> Self
 
 // Type aliases
