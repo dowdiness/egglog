@@ -29,7 +29,7 @@ pub struct ValueEnv {
   id : @src.Value
   bindings : Map[String, @src.Value]
 }
-pub fn ValueEnv::extend(Self, @src.Database, String, @src.Value) -> Self
+pub fn ValueEnv::bind(Self, @src.Database, String, @src.Value) -> Self
 pub fn ValueEnv::make(@src.Database) -> Self
 
 // Type aliases
