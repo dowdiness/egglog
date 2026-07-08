@@ -544,11 +544,11 @@ pub fn ValueEnv::make(db : @egglog.Database) -> ValueEnv {
 }
 
 ///|
-/// Extend the environment with a new binding.
+/// Bind the environment with a new binding.
 ///
 /// Creates ExtendEnv in the database, copies all parent bindings plus the new
-/// one, and seeds ValEnv for every visible binding in the extended environment.
-pub fn ValueEnv::extend(
+/// one, and seeds ValEnv for every visible binding in the bound environment.
+pub fn ValueEnv::bind(
   self : ValueEnv,
   db : @egglog.Database,
   name : String,
@@ -672,7 +672,7 @@ fn create_eval_env(
   name : String,
   value : @egglog.Value,
 ) -> ValueEnv {
-  val_env.extend(db, name, value)
+  val_env.bind(db, name, value)
 }
 
 ///|

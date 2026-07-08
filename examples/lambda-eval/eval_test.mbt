@@ -46,7 +46,7 @@ test "eval var" {
   let db = lambda_eval_db()
   let val_env = ValueEnv::make(db)
   let int_val = db.call("ValInt", [@egglog.IntVal(7)])
-  let ext = val_env.extend(db, "x", int_val)
+  let ext = val_env.bind(db, "x", int_val)
   let var_e = db.call("Var", [@egglog.StrVal("x")])
   let result = run_eval(db, ext.id, var_e, eval_rules())
   inspect(result is Some(_), content="true")
@@ -404,7 +404,7 @@ test "eval externally seeded env + closure capture" {
   let db = lambda_eval_db()
   let val_env = ValueEnv::make(db)
   let val_10 = db.call("ValInt", [@egglog.IntVal(10)])
-  let ext = val_env.extend(db, "x", val_10)
+  let ext = val_env.bind(db, "x", val_10)
   // Build: (lambda y. x + y) 5
   let var_x = db.call("Var", [@egglog.StrVal("x")])
   let var_y = db.call("Var", [@egglog.StrVal("y")])
