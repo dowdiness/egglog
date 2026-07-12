@@ -2,6 +2,10 @@ name = "dowdiness/egglog"
 
 version = "0.1.0"
 
+import {
+  "dowdiness/incr@0.14.0",
+}
+
 repository = "https://github.com/dowdiness/egglog"
 
 license = "Apache-2.0"
@@ -15,7 +19,3 @@ keywords = [
 ]
 
 description = "Relational e-graph engine (egglog) in MoonBit"
-
-import {
-  "dowdiness/incr@0.14.0",
-}
