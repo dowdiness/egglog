@@ -67,7 +67,7 @@ fn execute_actions(
 ) -> Int {
   let mut unions = 0
   // Copy the match so local lets remain scoped to this one rule firing.
-  let bindings : Map[String, Value] = {}
+  let bindings : Map[String, Value] = Map([])
   subst.each(fn(k, v) { bindings[k] = v })
   for action in actions {
     match action {
@@ -126,7 +126,7 @@ fn rewrite(
   rhs : Term,
 ) -> Rule {
   // Collect all variable names in args and rhs to avoid capture.
-  let used : Map[String, Unit] = {}
+  let used : Map[String, Unit] = Map([])
   for a in args {
     collect_vars(a, used)
   }

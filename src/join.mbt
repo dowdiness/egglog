@@ -31,7 +31,7 @@ fn eval_term_opt(
 /// Query execution is implemented as a search tree, so each branch needs its
 /// own map instance.
 fn copy_subst(subst : Map[String, Value]) -> Map[String, Value] {
-  let copied : Map[String, Value] = {}
+  let copied : Map[String, Value] = Map([])
   subst.each(fn(k, v) { copied[k] = v })
   copied
 }
@@ -136,7 +136,7 @@ fn execute_query_with(
       Equal(lhs, rhs) => equals.push((lhs, rhs))
     }
   }
-  let mut substs : Array[Map[String, Value]] = [{}]
+  let mut substs : Array[Map[String, Value]] = [Map([])]
   for i, fact in facts {
     let (name, terms) = fact
     let table = match db.tables.get(name) {

@@ -62,7 +62,7 @@ pub fn Database::extract(
   cost_fn : (String, Array[Int]) -> Int,
 ) -> (Int, ExtractedExpr) {
   // Best known expression for each canonical e-class.
-  let costs : Map[Int, (Int, ExtractedExpr)] = {}
+  let costs : Map[Int, (Int, ExtractedExpr)] = Map([])
   // Repeatedly relax rows until no cheaper expression appears.
   let mut changed = true
   while changed {

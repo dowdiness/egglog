@@ -2,7 +2,7 @@
 /// Rule tests focus on the little language used by schedules.
 test "eval_term Lit returns value" {
   let db = Database()
-  let subst : Map[String, Value] = {}
+  let subst : Map[String, Value] = Map([])
   let result = eval_term(db, subst, Lit(IntVal(42)))
   inspect(result, content="IntVal(42)")
 }
@@ -19,7 +19,7 @@ test "eval_term Var looks up substitution" {
 test "eval_term Call creates node in database" {
   let db = Database()
   db.register("Num")
-  let subst : Map[String, Value] = {}
+  let subst : Map[String, Value] = Map([])
   let result = eval_term(db, subst, Call("Num", [Lit(IntVal(42))]))
   // Action-time calls intern missing rows, so the result is an e-class id.
   match result {

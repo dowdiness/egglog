@@ -540,7 +540,7 @@ pub struct ValueEnv {
 ///|
 /// Create an empty value environment.
 pub fn ValueEnv::make(db : @egglog.Database) -> ValueEnv {
-  { id: db.call("EmptyEnv", []), bindings: {} }
+  { id: db.call("EmptyEnv", []), bindings: Map([]) }
 }
 
 ///|
@@ -555,7 +555,7 @@ pub fn ValueEnv::bind(
   value : @egglog.Value,
 ) -> ValueEnv {
   let new_id = db.call("ExtendEnv", [self.id, @egglog.StrVal(name), value])
-  let new_bindings : Map[String, @egglog.Value] = {}
+  let new_bindings : Map[String, @egglog.Value] = Map([])
   for k, v in self.bindings {
     new_bindings[k] = v
   }
@@ -628,7 +628,7 @@ fn reconstruct_val_env(
   env_val : @egglog.Value,
 ) -> ValueEnv {
   let env_id = db.find(unwrap_id(env_val))
-  let bindings : Map[String, @egglog.Value] = {}
+  let bindings : Map[String, @egglog.Value] = Map([])
   for row in db.scan("ValEnv") {
     let (args, result) = row
     if db.find(unwrap_id(args[0])) == env_id {
@@ -718,7 +718,7 @@ fn get_processed(
   match processed.get(table_name) {
     Some(m) => m
     None => {
-      let m : Map[TriggerKey, Bool] = {}
+      let m : Map[TriggerKey, Bool] = Map([])
       processed[table_name] = m
       m
     }
@@ -1093,9 +1093,9 @@ pub fn run_eval(
   // env_map caches host-side ValueEnv structs for tracked environments.
   // Untracked envs (externally seeded or stale after rebuild) are
   // reconstructed from ValEnv facts by get_or_reconstruct_env().
-  let env_map : Map[@egglog.Id, ValueEnv] = {}
+  let env_map : Map[@egglog.Id, ValueEnv] = Map([])
   let _ = db.set("Demand", [env_id, expr_id], @egglog.IntVal(1))
-  let processed : Map[String, Map[TriggerKey, Bool]] = {}
+  let processed : Map[String, Map[TriggerKey, Bool]] = Map([])
   for i = 0; i < max_iters; i = i + 1 {
     let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(rules), 10))
     if !evaluation_bridge(db, processed, env_map) {
