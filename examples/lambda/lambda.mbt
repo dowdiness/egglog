@@ -57,7 +57,7 @@ pub struct LambdaEnv {
 
 ///|
 pub fn LambdaEnv::make(db : @egglog.Database) -> LambdaEnv {
-  { id: db.call("EmptyEnv", []), bindings: {} }
+  { id: db.call("EmptyEnv", []), bindings: Map([]) }
 }
 
 ///|
@@ -68,7 +68,7 @@ pub fn LambdaEnv::bind(
   ty : @egglog.Value,
 ) -> LambdaEnv {
   let new_id = db.call("ExtendEnv", [self.id, @egglog.StrVal(name), ty])
-  let new_bindings : Map[String, @egglog.Value] = {}
+  let new_bindings : Map[String, @egglog.Value] = Map([])
   for k, v in self.bindings {
     new_bindings[k] = v
   }

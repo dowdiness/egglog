@@ -27,7 +27,7 @@ priv struct UnionFind {
 
 ///|
 fn UnionFind::UnionFind() -> UnionFind {
-  UnionFind::default()
+  Default::default()
 }
 
 ///|

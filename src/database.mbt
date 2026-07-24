@@ -26,9 +26,9 @@ pub fn Database::Database() -> Database {
   {
     rt: @incr.Runtime(),
     uf: UnionFind(),
-    tables: {},
+    tables: Map([]),
     pending: [],
-    registered_rules: {},
+    registered_rules: Map([]),
   }
 }
 
@@ -282,7 +282,7 @@ fn Database::register_incr_rule(
   }
   self.registered_rules[variant_name] = ()
   // Collect input table IDs by walking all terms in query atoms.
-  let input_names : Map[String, Unit] = {}
+  let input_names : Map[String, Unit] = Map([])
   for atom in rule.query {
     match atom {
       Fact(name, terms) => {
@@ -305,7 +305,7 @@ fn Database::register_incr_rule(
     }
   })
   // Collect output table IDs by walking all terms in actions.
-  let output_names : Map[String, Unit] = {}
+  let output_names : Map[String, Unit] = Map([])
   for action in rule.actions {
     match action {
       Set(name, args, val) => {

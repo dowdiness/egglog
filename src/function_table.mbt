@@ -29,7 +29,7 @@ fn FunctionTable::FunctionTable(
   rt : @incr.Runtime,
   merge : ((Value, Value) -> Value)?,
 ) -> FunctionTable {
-  { fr: make_fr(rt, merge), rows: {}, raw_keys: {}, merge }
+  { fr: make_fr(rt, merge), rows: Map([]), raw_keys: Map([]), merge }
 }
 
 ///|
