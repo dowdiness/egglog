@@ -100,7 +100,7 @@ pub fn Database::extract(
         }
         if all_available {
           let cost = cost_fn(name, child_costs)
-          let expr : ExtractedExpr = { func_name: name, args: child_args }
+          let expr : ExtractedExpr = { func_name: name, args: child_args, }
           let canon_out = output_id.0
           match costs.get(canon_out) {
             Some(entry) => {
