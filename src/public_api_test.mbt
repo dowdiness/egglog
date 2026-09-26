@@ -2,7 +2,7 @@
 /// Black-box smoke test showing the public API is sufficient for a tiny use
 /// case without white-box helpers.
 test "public database api is usable from blackbox tests" {
-  let db = Database::Database()
+  let db = @src.Database::Database()
   db.register("Num")
   let value = db.call("Num", [IntVal(7)])
   db.rebuild()
@@ -10,7 +10,7 @@ test "public database api is usable from blackbox tests" {
   inspect(db.run_schedule(Run([])), content="Saturated")
   match value {
     IdVal(id) => {
-      let (cost, expr) = db.extract(id, ast_size)
+      let (cost, expr) = db.extract(id, @src.ast_size)
       inspect(cost, content="1")
       inspect(expr, content="(Num IntVal(7))")
     }
@@ -20,7 +20,7 @@ test "public database api is usable from blackbox tests" {
 
 ///|
 test "Database::scan returns all rows" {
-  let db = Database::Database()
+  let db = @src.Database::Database()
   db.register("Foo")
   let _ = db.call("Foo", [IntVal(1)])
   let _ = db.call("Foo", [IntVal(2)])
@@ -31,14 +31,14 @@ test "Database::scan returns all rows" {
 
 ///|
 test "Database::scan on empty table returns empty array" {
-  let db = Database::Database()
+  let db = @src.Database::Database()
   db.register("Empty")
   inspect(db.scan("Empty").length(), content="0")
 }
 
 ///|
 test "Database::row_count tracks table size" {
-  let db = Database::Database()
+  let db = @src.Database::Database()
   db.register("Bar")
   inspect(db.row_count("Bar"), content="0")
   let _ = db.call("Bar", [IntVal(10)])
@@ -52,7 +52,7 @@ test "Database::row_count tracks table size" {
 
 ///|
 test "Database::scan and row_count after rules" {
-  let db = Database::Database()
+  let db = @src.Database::Database()
   db.register("Num")
   db.register("HasType")
   db.register("IntTy")
@@ -63,7 +63,7 @@ test "Database::scan and row_count after rules" {
   // binding n to the argument and e to the output e-class (the last term in a
   // Fact pattern is always the output column). Set("HasType", ...) then writes
   // HasType(e) = intty_id. Saturate runs until no new facts are derived.
-  let rule : Rule = {
+  let rule : @src.Rule = {
     name: "num-has-int-type",
     query: [Fact("Num", [Var("n"), Var("e")])],
     actions: [Set("HasType", [Var("e")], Call("IntTy", []))],
@@ -78,7 +78,7 @@ test "Database::scan and row_count after rules" {
 
 ///|
 test "Database::scan after union and rebuild" {
-  let db = Database::Database()
+  let db = @src.Database::Database()
   db.register("F")
   let a = db.call("F", [IntVal(1)])
   let b = db.call("F", [IntVal(2)])

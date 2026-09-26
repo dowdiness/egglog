@@ -149,3 +149,18 @@ fn rewrite(
     actions: [Union(Var(output_var), rhs)],
   }
 }
+
+///|
+pub extend Term with Eq::{not_equal, equal}
+
+///|
+pub extend Term with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Atom with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Action with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Rule with @moonbitlang/core/debug.Debug::{to_repr}

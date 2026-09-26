@@ -100,7 +100,7 @@ pub fn Database::extract(
         }
         if all_available {
           let cost = cost_fn(name, child_costs)
-          let expr : ExtractedExpr = { func_name: name, args: child_args }
+          let expr : ExtractedExpr = { func_name: name, args: child_args, }
           let canon_out = output_id.0
           match costs.get(canon_out) {
             Some(entry) => {
@@ -125,3 +125,15 @@ pub fn Database::extract(
     None => abort("no extraction found for id " + canon_root.to_string())
   }
 }
+
+///|
+pub extend ExtractedArg with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ExtractedArg with Show::{to_string, output}
+
+///|
+pub extend ExtractedExpr with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ExtractedExpr with Show::{to_string, output}

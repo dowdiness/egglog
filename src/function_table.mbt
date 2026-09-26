@@ -29,7 +29,7 @@ fn FunctionTable::FunctionTable(
   rt : @incr.Runtime,
   merge : ((Value, Value) -> Value)?,
 ) -> FunctionTable {
-  { fr: make_fr(rt, merge), rows: Map([]), raw_keys: Map([]), merge }
+  { fr: make_fr(rt, merge), rows: Map([]), raw_keys: Map([]), merge, }
 }
 
 ///|
@@ -49,7 +49,7 @@ fn make_fr(
 /// The NUL separator prevents accidental collisions between adjacent printed
 /// values such as `["ab", "c"]` and `["a", "bc"]`.
 fn key_string(key : Array[Value]) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for i, v in key {
     if i > 0 {
       buf.write_char('\u0000')

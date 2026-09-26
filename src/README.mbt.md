@@ -92,7 +92,7 @@ rebuild.
 ```mbt check
 ///|
 test "interning constructors returns one canonical row per key" {
-  let db = Database::Database()
+  let db = @src.Database::Database()
   db.register("Num")
   let n1 = db.call("Num", [IntVal(7)])
   let n2 = db.call("Num", [IntVal(7)])
@@ -105,7 +105,7 @@ test "interning constructors returns one canonical row per key" {
 
 ```mbt check
 ///|
-fn max_int_value(old : Value, new : Value) -> Value {
+fn max_int_value(old : @src.Value, new : @src.Value) -> @src.Value {
   match (old, new) {
     (IntVal(lhs), IntVal(rhs)) => IntVal(if lhs >= rhs { lhs } else { rhs })
     _ => old
@@ -114,7 +114,7 @@ fn max_int_value(old : Value, new : Value) -> Value {
 
 ///|
 test "merge tables combine conflicting primitive outputs" {
-  let db = Database::Database()
+  let db = @src.Database::Database()
   db.register("Score", merge=Some(max_int_value))
   let _ = db.set("Score", [StrVal("alice")], IntVal(3))
   let _ = db.set("Score", [StrVal("alice")], IntVal(5))
