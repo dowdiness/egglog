@@ -57,7 +57,7 @@ pub struct LambdaEnv {
 
 ///|
 pub fn LambdaEnv::make(db : @egglog.Database) -> LambdaEnv {
-  { id: db.call("EmptyEnv", []), bindings: Map([]) }
+  { id: db.call("EmptyEnv", []), bindings: Map([]), }
 }
 
 ///|
@@ -77,7 +77,7 @@ pub fn LambdaEnv::bind(
   for bname, btype in new_bindings {
     let _ = db.set("TypeEnv", [new_id, @egglog.StrVal(bname)], btype)
   }
-  { id: new_id, bindings: new_bindings }
+  { id: new_id, bindings: new_bindings, }
 }
 
 ///|

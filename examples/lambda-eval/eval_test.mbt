@@ -48,7 +48,12 @@ test "eval var" {
   let int_val = db.call("ValInt", [@egglog.IntVal(7)])
   let ext = val_env.bind(db, "x", int_val)
   let var_e = db.call("Var", [@egglog.StrVal("x")])
-  let result = @lambda-eval.run_eval(db, ext.id, var_e, @lambda-eval.eval_rules())
+  let result = @lambda-eval.run_eval(
+    db,
+    ext.id,
+    var_e,
+    @lambda-eval.eval_rules(),
+  )
   inspect(result is Some(_), content="true")
   inspect(same_class(db, result.unwrap(), int_val), content="true")
 }
@@ -241,7 +246,12 @@ test "eval nested let" {
   let inner_body = db.call("Add", [var_x, var_y])
   let inner_let = db.call("Let", [@egglog.StrVal("y"), num_2, inner_body])
   let outer_let = db.call("Let", [@egglog.StrVal("x"), num_1, inner_let])
-  let result = @lambda-eval.run_eval(db, env, outer_let, @lambda-eval.eval_rules())
+  let result = @lambda-eval.run_eval(
+    db,
+    env,
+    outer_let,
+    @lambda-eval.eval_rules(),
+  )
   let expected = db.call("ValInt", [@egglog.IntVal(3)])
   inspect(result is Some(_), content="true")
   inspect(same_class(db, result.unwrap(), expected), content="true")
@@ -282,7 +292,12 @@ test "eval closure captures env" {
   let app_e = db.call("App", [var_f, num_5])
   let inner_let = db.call("Let", [@egglog.StrVal("f"), lam_e, app_e])
   let outer_let = db.call("Let", [@egglog.StrVal("x"), num_10, inner_let])
-  let result = @lambda-eval.run_eval(db, env, outer_let, @lambda-eval.eval_rules())
+  let result = @lambda-eval.run_eval(
+    db,
+    env,
+    outer_let,
+    @lambda-eval.eval_rules(),
+  )
   let expected = db.call("ValInt", [@egglog.IntVal(15)])
   inspect(result is Some(_), content="true")
   inspect(same_class(db, result.unwrap(), expected), content="true")
@@ -344,7 +359,13 @@ test "eval fact count limit" {
   let env = db.call("EmptyEnv", [])
   let n1 = db.call("Num", [@egglog.IntVal(1)])
   // Simple expression that terminates quickly
-  let result = @lambda-eval.run_eval(db, env, n1, @lambda-eval.eval_rules(), max_iters=2)
+  let result = @lambda-eval.run_eval(
+    db,
+    env,
+    n1,
+    @lambda-eval.eval_rules(),
+    max_iters=2,
+  )
   let expected = db.call("ValInt", [@egglog.IntVal(1)])
   inspect(result is Some(_), content="true")
   inspect(same_class(db, result.unwrap(), expected), content="true")
@@ -378,7 +399,12 @@ test "composition: type and eval in same db" {
   inspect(type_result is Some(_), content="true")
   inspect(same_class(db, type_result.unwrap(), int_ty), content="true")
   // Run eval (in the same database)
-  let eval_result = @lambda-eval.run_eval(db, env, app_e, @lambda-eval.eval_rules())
+  let eval_result = @lambda-eval.run_eval(
+    db,
+    env,
+    app_e,
+    @lambda-eval.eval_rules(),
+  )
   let expected = db.call("ValInt", [@egglog.IntVal(6)])
   inspect(eval_result is Some(_), content="true")
   inspect(same_class(db, eval_result.unwrap(), expected), content="true")
@@ -412,7 +438,12 @@ test "eval externally seeded env + closure capture" {
   let lam_e = db.call("Lam", [@egglog.StrVal("y"), body])
   let num_5 = db.call("Num", [@egglog.IntVal(5)])
   let app_e = db.call("App", [lam_e, num_5])
-  let result = @lambda-eval.run_eval(db, ext.id, app_e, @lambda-eval.eval_rules())
+  let result = @lambda-eval.run_eval(
+    db,
+    ext.id,
+    app_e,
+    @lambda-eval.eval_rules(),
+  )
   let expected = db.call("ValInt", [@egglog.IntVal(15)])
   inspect(result is Some(_), content="true")
   inspect(same_class(db, result.unwrap(), expected), content="true")
@@ -428,7 +459,12 @@ test "eval let shadowing" {
   let var_x = db.call("Var", [@egglog.StrVal("x")])
   let inner_let = db.call("Let", [@egglog.StrVal("x"), num_2, var_x])
   let outer_let = db.call("Let", [@egglog.StrVal("x"), num_1, inner_let])
-  let result = @lambda-eval.run_eval(db, env, outer_let, @lambda-eval.eval_rules())
+  let result = @lambda-eval.run_eval(
+    db,
+    env,
+    outer_let,
+    @lambda-eval.eval_rules(),
+  )
   let expected = db.call("ValInt", [@egglog.IntVal(2)])
   inspect(result is Some(_), content="true")
   inspect(same_class(db, result.unwrap(), expected), content="true")

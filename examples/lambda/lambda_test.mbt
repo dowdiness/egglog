@@ -134,7 +134,14 @@ test "app: non-arrow callee produces no HasType" {
   let arg_e = db.call("Num", [@egglog.IntVal(42)])
   let app_e = db.call("App", [f_e, arg_e])
   let _ = db.set("Typing", [env, app_e], @egglog.IntVal(1))
-  run(db, [..@lambda.propagation_rules(), ..@lambda.atom_rules(), ..@lambda.app_rules()])
+  run(
+    db,
+    [
+      ..@lambda.propagation_rules(),
+      ..@lambda.atom_rules(),
+      ..@lambda.app_rules(),
+    ],
+  )
   inspect(db.lookup("HasType", [env, app_e]) is None, content="true")
 }
 
@@ -160,7 +167,12 @@ test "check-lam: codomain seeded enables nested lambda checking" {
   let _ = db.set("HasType", [env0.id, outer_lam], outer_arr)
   run(
     db,
-    [..@lambda.propagation_rules(), ..@lambda.atom_rules(), ..@lambda.arith_rules(), ..@lambda.lam_rules()],
+    [
+      ..@lambda.propagation_rules(),
+      ..@lambda.atom_rules(),
+      ..@lambda.arith_rules(),
+      ..@lambda.lam_rules(),
+    ],
   )
   // body (x + y) should have type Int in env_xy
   let result = db.lookup("HasType", [env_xy.id, body])
@@ -170,14 +182,26 @@ test "check-lam: codomain seeded enables nested lambda checking" {
 
 ///|
 fn run_arith(db : @egglog.Database) -> Unit {
-  run(db, [..@lambda.propagation_rules(), ..@lambda.atom_rules(), ..@lambda.arith_rules()])
+  run(
+    db,
+    [
+      ..@lambda.propagation_rules(),
+      ..@lambda.atom_rules(),
+      ..@lambda.arith_rules(),
+    ],
+  )
 }
 
 ///|
 fn run_arith_if(db : @egglog.Database) -> Unit {
   run(
     db,
-    [..@lambda.propagation_rules(), ..@lambda.atom_rules(), ..@lambda.arith_rules(), ..@lambda.if_rules()],
+    [
+      ..@lambda.propagation_rules(),
+      ..@lambda.atom_rules(),
+      ..@lambda.arith_rules(),
+      ..@lambda.if_rules(),
+    ],
   )
 }
 
@@ -268,7 +292,14 @@ test "app synthesizes return type from Arrow" {
   let arg_e = db.call("Num", [@egglog.IntVal(42)])
   let app_e = db.call("App", [f_e, arg_e])
   let _ = db.set("Typing", [env, app_e], @egglog.IntVal(1))
-  run(db, [..@lambda.propagation_rules(), ..@lambda.atom_rules(), ..@lambda.app_rules()])
+  run(
+    db,
+    [
+      ..@lambda.propagation_rules(),
+      ..@lambda.atom_rules(),
+      ..@lambda.app_rules(),
+    ],
+  )
   let result = db.lookup("HasType", [env, app_e])
   inspect(same_class(db, result.unwrap(), int_ty), content="true")
 }
@@ -286,7 +317,12 @@ test "let binding synthesizes body type" {
   let _ = db.set("Typing", [env, let_e], @egglog.IntVal(1))
   run(
     db,
-    [..@lambda.propagation_rules(), ..@lambda.atom_rules(), ..@lambda.arith_rules(), ..@lambda.let_rules()],
+    [
+      ..@lambda.propagation_rules(),
+      ..@lambda.atom_rules(),
+      ..@lambda.arith_rules(),
+      ..@lambda.let_rules(),
+    ],
   )
   let int_ty = db.call("IntTy", [])
   let result = db.lookup("HasType", [env, let_e])
@@ -308,7 +344,12 @@ test "check-lam: lambda body typed in extended env" {
   let _ = db.set("HasType", [env, lam_e], arr_ty) // seed expected type
   run(
     db,
-    [..@lambda.propagation_rules(), ..@lambda.atom_rules(), ..@lambda.arith_rules(), ..@lambda.lam_rules()],
+    [
+      ..@lambda.propagation_rules(),
+      ..@lambda.atom_rules(),
+      ..@lambda.arith_rules(),
+      ..@lambda.lam_rules(),
+    ],
   )
   // body should be typed as Int in the extended env
   let ext_env = db.call("ExtendEnv", [env, @egglog.StrVal("x"), int_ty])
@@ -328,7 +369,9 @@ test "let shadowing: inner x shadows outer x" {
   let inner_let = db.call("Let", [@egglog.StrVal("x"), bool_true, var_x])
   let outer_let = db.call("Let", [@egglog.StrVal("x"), num_1, inner_let])
   let _ = db.set("Typing", [env, outer_let], @egglog.IntVal(1))
-  let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(@lambda.all_rules()), 30))
+  let _ = db.run_schedule(
+    @egglog.Saturate(@egglog.Run(@lambda.all_rules()), 30),
+  )
   let bool_ty = db.call("BoolTy", [])
   let int_ty = db.call("IntTy", [])
   let result = db.lookup("HasType", [env, outer_let])
@@ -353,7 +396,9 @@ test "app + lam full round-trip" {
   let app_e = db.call("App", [lam_e, num_42])
   let _ = db.set("Typing", [env, app_e], @egglog.IntVal(1))
   let _ = db.set("HasType", [env, lam_e], arr_ty) // seed lam type
-  let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(@lambda.all_rules()), 30))
+  let _ = db.run_schedule(
+    @egglog.Saturate(@egglog.Run(@lambda.all_rules()), 30),
+  )
   let result = db.lookup("HasType", [env, app_e])
   inspect(same_class(db, result.unwrap(), int_ty), content="true")
 }
@@ -383,7 +428,9 @@ test "LambdaEnv inherited bindings: let x=1 in let y=2 in x+y" {
   let _ = db.set("Typing", [env2.id, body], @egglog.IntVal(1))
   let _ = db.set("Typing", [env1.id, num_2], @egglog.IntVal(1))
   let _ = db.set("Typing", [env0.id, num_1], @egglog.IntVal(1))
-  let _ = db.run_schedule(@egglog.Saturate(@egglog.Run(@lambda.all_rules()), 30))
+  let _ = db.run_schedule(
+    @egglog.Saturate(@egglog.Run(@lambda.all_rules()), 30),
+  )
   // body (x + y) : Int in env2 — requires both x and y visible via TypeEnv
   let result = db.lookup("HasType", [env2.id, body])
   inspect(same_class(db, result.unwrap(), int_ty), content="true")
