@@ -104,3 +104,15 @@ pub fn Database::run_schedule(
     }
   }
 }
+
+///|
+pub extend Schedule with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend StopReason with Eq::{not_equal, equal}
+
+///|
+pub extend StopReason with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend StopReason with Show::{to_string, output}

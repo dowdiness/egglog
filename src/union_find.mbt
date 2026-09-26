@@ -85,3 +85,18 @@ fn UnionFind::union(self : UnionFind, a : Id, b : Id) -> Id {
 fn UnionFind::size(self : UnionFind) -> Int {
   self.parents.length()
 }
+
+///|
+pub extend Id with Eq::{not_equal, equal}
+
+///|
+pub extend Id with Compare::{op_lt, op_le, op_ge, compare, op_gt}
+
+///|
+pub extend Id with Hash::{hash, hash_combine}
+
+///|
+pub extend Id with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Id with Show::{to_string, output}

@@ -540,7 +540,7 @@ pub struct ValueEnv {
 ///|
 /// Create an empty value environment.
 pub fn ValueEnv::make(db : @egglog.Database) -> ValueEnv {
-  { id: db.call("EmptyEnv", []), bindings: Map([]) }
+  { id: db.call("EmptyEnv", []), bindings: Map([]), }
 }
 
 ///|
@@ -563,7 +563,7 @@ pub fn ValueEnv::bind(
   for bname, bval in new_bindings {
     let _ = db.set("ValEnv", [new_id, @egglog.StrVal(bname)], bval)
   }
-  { id: new_id, bindings: new_bindings }
+  { id: new_id, bindings: new_bindings, }
 }
 
 ///|
@@ -638,7 +638,7 @@ fn reconstruct_val_env(
       }
     }
   }
-  { id: env_val, bindings }
+  { id: env_val, bindings, }
 }
 
 ///|
@@ -1104,3 +1104,10 @@ pub fn run_eval(
   }
   db.lookup("Eval", [env_id, expr_id])
 }
+
+
+///|
+pub extend TriggerKey with Eq::{equal, not_equal}
+
+///|
+pub extend TriggerKey with Hash::{hash, hash_combine}

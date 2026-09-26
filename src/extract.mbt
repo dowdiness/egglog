@@ -125,3 +125,15 @@ pub fn Database::extract(
     None => abort("no extraction found for id " + canon_root.to_string())
   }
 }
+
+///|
+pub extend ExtractedArg with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ExtractedArg with Show::{to_string, output}
+
+///|
+pub extend ExtractedExpr with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ExtractedExpr with Show::{to_string, output}
