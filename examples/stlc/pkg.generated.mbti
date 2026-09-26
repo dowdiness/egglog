@@ -19,4 +19,3 @@ pub fn stlc_rules() -> Array[@src.Rule]
 // Type aliases
 
 // Traits
-

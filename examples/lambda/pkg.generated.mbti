@@ -37,4 +37,3 @@ pub fn LambdaEnv::make(@src.Database) -> Self
 // Type aliases
 
 // Traits
-
