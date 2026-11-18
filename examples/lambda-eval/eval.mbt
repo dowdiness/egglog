@@ -571,7 +571,7 @@ pub fn ValueEnv::bind(
 ///
 /// Scans the ValInt table to find the entry whose result id matches
 /// the given value's canonical id.
-fn extract_int(db : @egglog.Database, val : @egglog.Value) -> Int? {
+fn extract_int(db : @egglog.Database, val : @egglog.Value) -> Int32? {
   let val_id = db.find(unwrap_id(val))
   for row in db.scan("ValInt") {
     let (args, result) = row
@@ -677,10 +677,11 @@ fn create_eval_env(
 
 ///|
 /// Composite key for tracking processed triggers.
+#derive(Eq, Hash)
 struct TriggerKey {
   env_id : @egglog.Id
   expr_id : @egglog.Id
-} derive(Eq, Hash)
+}
 
 ///|
 /// MoonBit evaluation bridge: handles operations that cannot be expressed
@@ -1088,7 +1089,7 @@ pub fn run_eval(
   env_id : @egglog.Value,
   expr_id : @egglog.Value,
   rules : Array[@egglog.Rule],
-  max_iters? : Int = 100,
+  max_iters~ : Int32 = 100,
 ) -> @egglog.Value? {
   // env_map caches host-side ValueEnv structs for tracked environments.
   // Untracked envs (externally seeded or stale after rebuild) are

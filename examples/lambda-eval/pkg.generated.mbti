@@ -16,16 +16,17 @@ pub fn leaf_rules() -> Array[@src.Rule]
 
 pub fn result_rules() -> Array[@src.Rule]
 
-pub fn run_eval(@src.Database, @src.Value, @src.Value, Array[@src.Rule], max_iters? : Int) -> @src.Value?
+pub fn run_eval(@src.Database, @src.Value, @src.Value, Array[@src.Rule], max_iters? : Int32) -> @src.Value?
 
 pub fn trigger_rules() -> Array[@src.Rule]
 
 // Errors
 
 // Types and methods
-type TriggerKey derive(Eq, Hash)
+#derive(Eq, Hash)
+type TriggerKey
 pub fn TriggerKey::equal(Self, Self) -> Bool
-pub fn TriggerKey::hash(Self) -> Int
+pub fn TriggerKey::hash(Self) -> Int32
 pub fn TriggerKey::hash_combine(Self, Hasher) -> Unit
 pub fn TriggerKey::not_equal(Self, Self) -> Bool
 

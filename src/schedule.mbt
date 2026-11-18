@@ -4,19 +4,21 @@
 /// `Run` is a single pass, `Saturate` keeps repeating until the database stops
 /// changing or a limit is hit, and `Repeat`/`Seq` provide simple composition.
 /// A schedule controls how rules are applied.
+#derive(Debug)
 pub(all) enum Schedule {
   Run(Array[Rule])
-  Saturate(Schedule, Int)
-  Repeat(Int, Schedule)
+  Saturate(Schedule, Int32)
+  Repeat(Int32, Schedule)
   Seq(Array[Schedule])
-} derive(Debug)
+}
 
 ///|
 /// Coarse status returned by schedule execution.
+#derive(Eq, Debug)
 pub(all) enum StopReason {
   Saturated
   IterLimit
-} derive(Eq, Debug)
+}
 
 ///|
 pub impl Show for StopReason with fn output(self, logger) {
@@ -28,7 +30,7 @@ pub impl Show for StopReason with fn output(self, logger) {
 ///
 /// Rebuild is intentionally delayed so several matches can enqueue unions
 /// before the tables are canonicalized again.
-fn Database::apply_rule(self : Database, rule : Rule) -> Int {
+fn Database::apply_rule(self : Database, rule : Rule) -> Int32 {
   let substs = execute_query(self, rule.query)
   let mut total_unions = 0
   for s in substs {

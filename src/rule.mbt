@@ -4,34 +4,38 @@
 /// Terms build expressions, atoms describe query patterns, and actions describe
 /// side effects once a match has been found.
 /// A term in the egglog language.
+#derive(Eq, Debug)
 pub(all) enum Term {
   Var(String)
   Lit(Value)
   Call(String, Array[Term])
-} derive(Eq, Debug)
+}
 
 ///|
 /// An atom in a query pattern.
+#derive(Debug)
 pub(all) enum Atom {
   Fact(String, Array[Term])
   Equal(Term, Term)
-} derive(Debug)
+}
 
 ///|
 /// An action to execute when a rule fires.
+#derive(Debug)
 pub(all) enum Action {
   Union(Term, Term)
   Set(String, Array[Term], Term)
   LetAction(String, Term)
-} derive(Debug)
+}
 
 ///|
 /// A rule: query atoms + actions.
+#derive(Debug)
 pub(all) struct Rule {
   name : String
   query : Array[Atom]
   actions : Array[Action]
-} derive(Debug)
+}
 
 ///|
 /// Action-time term evaluation.
@@ -64,7 +68,7 @@ fn execute_actions(
   db : Database,
   subst : Map[String, Value],
   actions : Array[Action],
-) -> Int {
+) -> Int32 {
   let mut unions = 0
   // Copy the match so local lets remain scoped to this one rule firing.
   let bindings : Map[String, Value] = Map([])

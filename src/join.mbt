@@ -126,7 +126,7 @@ fn unify_row(
 fn execute_query_with(
   db : Database,
   query : Array[Atom],
-  row_source : (FunctionTable, Int) -> Array[(Array[Value], Value)],
+  row_source : (FunctionTable, Int32) -> Array[(Array[Value], Value)],
 ) -> Array[Map[String, Value]] {
   let facts : Array[(String, Array[Term])] = []
   let equals : Array[(Term, Term)] = []
