@@ -6,22 +6,24 @@ import {
 }
 
 // Values
-pub fn ast_size(String, Array[Int]) -> Int
+pub fn ast_size(String, Array[Int32]) -> Int32
 
 // Errors
 
 // Types and methods
+#derive(@debug.Debug)
 pub(all) enum Action {
   Union(Term, Term)
   Set(String, Array[Term], Term)
   LetAction(String, Term)
-} derive(@debug.Debug)
+}
 pub fn Action::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub(all) enum Atom {
   Fact(String, Array[Term])
   Equal(Term, Term)
-} derive(@debug.Debug)
+}
 pub fn Atom::to_repr(Self) -> @debug.Repr
 
 pub struct Database {
@@ -30,39 +32,42 @@ pub struct Database {
 #alias(new, deprecated)
 pub fn Database::Database() -> Self
 pub fn Database::call(Self, String, Array[Value]) -> Value
-pub fn Database::extract(Self, Id, (String, Array[Int]) -> Int) -> (Int, ExtractedExpr)
+pub fn Database::extract(Self, Id, (String, Array[Int32]) -> Int32) -> (Int32, ExtractedExpr)
 pub fn Database::find(Self, Id) -> Id
 pub fn Database::lookup(Self, String, Array[Value]) -> Value?
 pub fn Database::rebuild(Self) -> Unit
 pub fn Database::register(Self, String, merge? : ((Value, Value) -> Value)?) -> Unit
-pub fn Database::row_count(Self, String) -> Int
+pub fn Database::row_count(Self, String) -> Int32
 pub fn Database::run_schedule(Self, Schedule) -> StopReason
 pub fn Database::scan(Self, String) -> Array[(Array[Value], Value)]
 pub fn Database::set(Self, String, Array[Value], Value) -> Value
 pub fn Database::union(Self, Id, Id) -> Unit
 
+#derive(@debug.Debug)
 pub(all) enum ExtractedArg {
   Expr(ExtractedExpr)
   Primitive(Value)
-} derive(@debug.Debug)
+}
 pub fn ExtractedArg::output(Self, &Logger) -> Unit
 pub fn ExtractedArg::to_repr(Self) -> @debug.Repr
 pub fn ExtractedArg::to_string(Self) -> String
 pub impl Show for ExtractedArg
 
+#derive(@debug.Debug)
 pub(all) struct ExtractedExpr {
   func_name : String
   args : Array[ExtractedArg]
-} derive(@debug.Debug)
+}
 pub fn ExtractedExpr::output(Self, &Logger) -> Unit
 pub fn ExtractedExpr::to_repr(Self) -> @debug.Repr
 pub fn ExtractedExpr::to_string(Self) -> String
 pub impl Show for ExtractedExpr
 
-pub(all) struct Id(Int) derive(Compare, Eq, Hash, @debug.Debug)
-pub fn Id::compare(Self, Self) -> Int
+#derive(Compare, Eq, Hash, @debug.Debug)
+pub(all) struct Id(Int32)
+pub fn Id::compare(Self, Self) -> Int32
 pub fn Id::equal(Self, Self) -> Bool
-pub fn Id::hash(Self) -> Int
+pub fn Id::hash(Self) -> Int32
 pub fn Id::hash_combine(Self, Hasher) -> Unit
 pub fn Id::not_equal(Self, Self) -> Bool
 pub fn Id::op_ge(Self, Self) -> Bool
@@ -74,35 +79,39 @@ pub fn Id::to_repr(Self) -> @debug.Repr
 pub fn Id::to_string(Self) -> String
 pub impl Show for Id
 
+#derive(@debug.Debug)
 pub(all) struct Rule {
   name : String
   query : Array[Atom]
   actions : Array[Action]
-} derive(@debug.Debug)
+}
 pub fn Rule::to_repr(Self) -> @debug.Repr
 
+#derive(@debug.Debug)
 pub(all) enum Schedule {
   Run(Array[Rule])
-  Saturate(Schedule, Int)
-  Repeat(Int, Schedule)
+  Saturate(Schedule, Int32)
+  Repeat(Int32, Schedule)
   Seq(Array[Schedule])
-} derive(@debug.Debug)
+}
 pub fn Schedule::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, Hash, @debug.Debug)
 pub(all) enum Sort {
   EqSort(String)
   PrimitiveSort(String)
-} derive(Eq, Hash, @debug.Debug)
+}
 pub fn Sort::equal(Self, Self) -> Bool
-pub fn Sort::hash(Self) -> Int
+pub fn Sort::hash(Self) -> Int32
 pub fn Sort::hash_combine(Self, Hasher) -> Unit
 pub fn Sort::not_equal(Self, Self) -> Bool
 pub fn Sort::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum StopReason {
   Saturated
   IterLimit
-} derive(Eq, @debug.Debug)
+}
 pub fn StopReason::equal(Self, Self) -> Bool
 pub fn StopReason::not_equal(Self, Self) -> Bool
 pub fn StopReason::output(Self, &Logger) -> Unit
@@ -110,23 +119,25 @@ pub fn StopReason::to_repr(Self) -> @debug.Repr
 pub fn StopReason::to_string(Self) -> String
 pub impl Show for StopReason
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Term {
   Var(String)
   Lit(Value)
   Call(String, Array[Term])
-} derive(Eq, @debug.Debug)
+}
 pub fn Term::equal(Self, Self) -> Bool
 pub fn Term::not_equal(Self, Self) -> Bool
 pub fn Term::to_repr(Self) -> @debug.Repr
 
+#derive(Compare, Eq, Hash, @debug.Debug)
 pub(all) enum Value {
   IdVal(Id)
-  IntVal(Int)
+  IntVal(Int32)
   StrVal(String)
-} derive(Compare, Eq, Hash, @debug.Debug)
-pub fn Value::compare(Self, Self) -> Int
+}
+pub fn Value::compare(Self, Self) -> Int32
 pub fn Value::equal(Self, Self) -> Bool
-pub fn Value::hash(Self) -> Int
+pub fn Value::hash(Self) -> Int32
 pub fn Value::hash_combine(Self, Hasher) -> Unit
 pub fn Value::not_equal(Self, Self) -> Bool
 pub fn Value::op_ge(Self, Self) -> Bool

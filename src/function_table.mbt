@@ -108,7 +108,7 @@ fn FunctionTable::lookup(self : FunctionTable, key : Array[Value]) -> Value? {
 ///|
 /// Count materialized rows in the table.
 #warnings("-unused_value")
-fn FunctionTable::row_count(self : FunctionTable) -> Int {
+fn FunctionTable::row_count(self : FunctionTable) -> Int32 {
   self.rows.length()
 }
 

@@ -53,7 +53,7 @@ pub fn Database::find(self : Database, id : Id) -> Id {
 pub fn Database::register(
   self : Database,
   name : String,
-  merge? : ((Value, Value) -> Value)? = None,
+  merge~ : ((Value, Value) -> Value)? = None,
 ) -> Unit {
   self.tables[name] = FunctionTable(self.rt, merge)
 }
@@ -272,7 +272,7 @@ fn Database::rebuild_table(
 fn Database::register_incr_rule(
   self : Database,
   rule : Rule,
-  seed_index : Int,
+  seed_index : Int32,
 ) -> Unit {
   // Guard: abort on duplicate rule names within the same Saturate scope.
   // Semi-naive variants use name#index to distinguish.
@@ -365,7 +365,7 @@ fn collect_table_names(term : Term, names : Map[String, Unit]) -> Unit {
 ///|
 /// Count the number of Fact atoms in a query (determines how many
 /// semi-naive variants to register per rule).
-fn count_facts(query : Array[Atom]) -> Int {
+fn count_facts(query : Array[Atom]) -> Int32 {
   let mut count = 0
   for atom in query {
     match atom {
@@ -435,7 +435,7 @@ pub fn Database::scan(
 /// this equals the number of distinct function applications materialized so far.
 ///
 /// Aborts if the table has not been registered via `register()`.
-pub fn Database::row_count(self : Database, name : String) -> Int {
+pub fn Database::row_count(self : Database, name : String) -> Int32 {
   let table = self.get_table(name)
   table.row_count()
 }

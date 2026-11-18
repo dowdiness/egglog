@@ -5,7 +5,8 @@
 /// rows, while union-find decides which `Id`s currently refer to the same
 /// e-class.
 /// E-class identifier. Newtype wrapper around Int for type safety.
-pub(all) struct Id(Int) derive(Eq, Compare, Hash, Debug)
+#derive(Eq, Compare, Hash, Debug)
+pub(all) struct Id(Int32)
 
 ///|
 pub impl Show for Id with fn output(self, logger) {
@@ -14,16 +15,17 @@ pub impl Show for Id with fn output(self, logger) {
 }
 
 ///|
-type Rank = Int
+type Rank = Int32
 
 ///|
 /// Parent-pointer forest with near-constant amortized operations.
 /// Union-Find with path compression and union by rank.
+#derive(Default, Debug)
 #warnings("-unused_value")
 priv struct UnionFind {
   parents : Array[Id]
   ranks : Array[Rank]
-} derive(Default, Debug)
+}
 
 ///|
 fn UnionFind::UnionFind() -> UnionFind {
@@ -82,7 +84,7 @@ fn UnionFind::union(self : UnionFind, a : Id, b : Id) -> Id {
 ///|
 /// Number of allocated elements, not the number of distinct e-classes.
 #warnings("-unused_value")
-fn UnionFind::size(self : UnionFind) -> Int {
+fn UnionFind::size(self : UnionFind) -> Int32 {
   self.parents.length()
 }
 

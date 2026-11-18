@@ -5,10 +5,11 @@
 /// recursively extracted expression or a primitive leaf that was stored in the
 /// table row.
 /// An extracted argument, preserving whether it was primitive or an e-class.
+#derive(Debug)
 pub(all) enum ExtractedArg {
   Expr(ExtractedExpr)
   Primitive(Value)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for ExtractedArg with fn output(self, logger) {
@@ -21,10 +22,11 @@ pub impl Show for ExtractedArg with fn output(self, logger) {
 ///|
 /// Tree-shaped view of one chosen representative expression.
 /// An extracted expression tree.
+#derive(Debug)
 pub(all) struct ExtractedExpr {
   func_name : String
   args : Array[ExtractedArg]
-} derive(Debug)
+}
 
 ///|
 pub impl Show for ExtractedExpr with fn output(self, logger) {
@@ -43,7 +45,7 @@ pub impl Show for ExtractedExpr with fn output(self, logger) {
 
 ///|
 /// Default structural cost: one node plus the cost of all e-class children.
-pub fn ast_size(_name : String, child_costs : Array[Int]) -> Int {
+pub fn ast_size(_name : String, child_costs : Array[Int32]) -> Int32 {
   let mut total = 1
   for c in child_costs {
     total = total + c
@@ -59,10 +61,10 @@ pub fn ast_size(_name : String, child_costs : Array[Int]) -> Int {
 pub fn Database::extract(
   self : Database,
   root : Id,
-  cost_fn : (String, Array[Int]) -> Int,
-) -> (Int, ExtractedExpr) {
+  cost_fn : (String, Array[Int32]) -> Int32,
+) -> (Int32, ExtractedExpr) {
   // Best known expression for each canonical e-class.
-  let costs : Map[Int, (Int, ExtractedExpr)] = Map([])
+  let costs : Map[Int32, (Int32, ExtractedExpr)] = Map([])
   // Repeatedly relax rows until no cheaper expression appears.
   let mut changed = true
   while changed {
@@ -77,7 +79,7 @@ pub fn Database::extract(
         }
         // Score the row only if every e-class child already has a chosen best
         // expression.
-        let child_costs : Array[Int] = []
+        let child_costs : Array[Int32] = []
         let child_args : Array[ExtractedArg] = []
         let mut all_available = true
         for k in key {

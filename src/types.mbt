@@ -4,11 +4,12 @@
 /// `IdVal` points at an e-class managed by union-find. Primitive cases are the
 /// leaves that can appear in tables without introducing a new equivalence class.
 /// A value in the egglog database. Either an e-class Id or a primitive.
+#derive(Eq, Hash, Compare, Debug)
 pub(all) enum Value {
   IdVal(Id)
-  IntVal(Int)
+  IntVal(Int32)
   StrVal(String)
-} derive(Eq, Hash, Compare, Debug)
+}
 
 ///|
 pub impl Show for Value with fn output(self, logger) {
@@ -21,10 +22,11 @@ pub impl Show for Value with fn output(self, logger) {
 /// The current prototype does not enforce sorts yet, but keeping the concept in
 /// the surface language makes later validation and optimization easier to add.
 /// Sort (type) of a column in a function table.
+#derive(Eq, Hash, Debug)
 pub(all) enum Sort {
   EqSort(String)
   PrimitiveSort(String)
-} derive(Eq, Hash, Debug)
+}
 
 ///|
 pub extend Value with Eq::{not_equal, equal}
